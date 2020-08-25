@@ -1,0 +1,34 @@
+{
+  "name": "@oada/rules-worker",
+  "version": "1.0.0",
+  "main": "lib/index.js",
+  "author": "Alex Layton <alex@layton.in>",
+  "license": "MIT",
+  "private": false,
+  "scripts": {
+    "build": "tsc",
+    "pretest": "npm run build",
+    "prepare": "npm run build"
+  },
+  "files": [
+    "**/*.ts",
+    "**/*.ts.map",
+    "**/*.js",
+    "**/*.js.map",
+    "tsconfig.json"
+  ],
+  "devDependencies": {
+    "@types/bluebird": "^3.5.32",
+    "@types/debug": "^4.1.5",
+    "@types/node": "^14.6.0",
+    "typescript": "^4.0.0-beta"
+  },
+  "dependencies": {
+    "@oada/list-lib": "^1.0.1",
+    "@oada/types": "^1.0.10",
+    "ajv": "^6.12.4",
+    "bluebird": "^3.7.2",
+    "debug": "^4.1.1",
+    "jsonschema8": "^1.1.0"
+  }
+}
