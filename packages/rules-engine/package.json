@@ -1,0 +1,33 @@
+{
+  "name": "@oada/rules-engine",
+  "version": "1.0.0",
+  "main": "lib/index.js",
+  "author": "Alex Layton <alex@layton.in>",
+  "license": "MIT",
+  "private": false,
+  "scripts": {
+    "build": "tsc",
+    "pretest": "npm run build",
+    "prepare": "npm run build"
+  },
+  "files": [
+    "**/*.ts",
+    "**/*.ts.map",
+    "**/*.js",
+    "**/*.js.map",
+    "tsconfig.json"
+  ],
+  "devDependencies": {
+    "@types/debug": "^4.1.5",
+    "@types/node": "^14.6.0",
+    "@types/type-is": "^1.6.3",
+    "typescript": "^4.0.0-beta"
+  },
+  "dependencies": {
+    "@oada/client": "^1.0.4",
+    "@oada/types": "^1.0.10",
+    "debug": "^4.1.1",
+    "jsonschema8": "^1.1.0",
+    "type-is": "^1.6.18"
+  }
+}
