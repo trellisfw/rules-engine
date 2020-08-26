@@ -1,7 +1,10 @@
-import { JSONSchema8 as Schema } from 'jsonschema8'
 import Bluebird from 'bluebird'
 import Ajv from 'ajv'
 import debug from 'debug'
+
+import Action from '@oada/types/oada/rules/action'
+import Condition from '@oada/types/oada/rules/condition'
+import Work from '@oada/types/oada/rules/compiled'
 
 import { ListWatch, Options as WatchOptions } from '@oada/list-lib'
 
@@ -108,89 +111,6 @@ export type Options<Service extends string> = {
   conditions?: Condition[]
 }
 
-// TODO: Add these to oada/types
-/**
- * Possible parameters for an action/condition
- * @todo how to handle parameters?
- */
-type Params = never & object
-type Action = {
-  /**
-   * Name of the action
-   */
-  name: string
-  /**
-   * Name of the service implementing the action
-   */
-  service: string
-  /**
-   * Content-type this action works with?
-   */
-  type: string | string[]
-  /**
-   * Human description of the action
-   * @todo How to handle parameters?
-   */
-  description: string
-  /**
-   * Parameters the action takes
-   * @todo how to handle parameters?
-   */
-  params?: Params
-}
-/**
- * @todo Implement conditions
- */
-type Condition = never & {
-  /**
-   * Name of the condition
-   */
-  name: string
-  /**
-   * Name of the service implementing the action
-   */
-  service: string
-  /**
-   * Content-type this condition works with?
-   */
-  type: string | string[]
-  /**
-   * Human description of the condition
-   * @todo How to handle parameters?
-   */
-  description: string
-  /**
-   * Parameters the condition takes
-   * @todo how to handle parameters?
-   */
-  params?: Params
-}
-// TODO: Work should link back to rule?
-type Work = {
-  /**
-   * Content-type this work is on?
-   */
-  type: string
-  service: string
-  /**
-   * The name of the action to perform
-   */
-  action: Action['name']
-  /**
-   * Parameters to send to action
-   * @todo how to handle parametea,rs?
-   */
-  options: object
-  /**
-   * The OADA path to a list to work on
-   */
-  path: string
-  /**
-   * A JSON Schema to limit items to work on
-   */
-  schema: Schema
-}
-
 type Literal<T> = T extends string & infer R ? R : never
 /**
  * Representation of an action we implement
@@ -204,7 +124,7 @@ type ActionImplementor<Service extends string> = Action & {
    * A callback for code to implement this action
    * @todo Better types parameters?
    */
-  callback: (item: any, params: object) => Promise<void>
+  callback: (item: any, options: Action['options']) => Promise<void>
 }
 
 const GLOBAL_ROOT = '/bookmarks/rules'
@@ -213,6 +133,8 @@ const WORK_PATH = 'compiled'
 
 /**
  * Class for exposing and implemention a worker for the "rules engine"
+ *
+ * @typeParam Service Don't worry about it, just let TS infer it
  */
 export class RulesWorker<Service extends string> {
   public readonly path
