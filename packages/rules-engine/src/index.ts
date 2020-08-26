@@ -1,6 +1,13 @@
 import { JSONSchema8 as Schema } from 'jsonschema8'
 import { is } from 'type-is'
 
+import Action from '@oada/types/oada/rules/action'
+/**
+ * @todo Implement conditions besides schemas
+ */
+import Condition from '@oada/types/oada/rules/condition'
+import Work from '@oada/types/oada/rules/compiled'
+
 import type { OADAClient } from '@oada/client'
 
 /**
@@ -76,98 +83,11 @@ const serviceRulesTree = {
   }
 }
 
-// TODO: Add these to oada/types
-/**
- * Possible parameters for an action/condition
- * @todo how to handle parameters?
- */
-type Params = never & object
-type Action = {
-  /**
-   * Name of the action
-   */
-  name: string
-  /**
-   * Name of the service implementing the action
-   */
-  service: string
-  /**
-   * Content-type this action works with?
-   */
-  type: string | string[]
-  /**
-   * Human description of the action
-   * @todo How to handle parameters?
-   */
-  description: string
-  /**
-   * Parameters the action takes
-   * @todo how to handle parameters?
-   */
-  params?: Params
-}
-/**
- * @todo Implement conditions besides schemas
- */
-type Condition = {
-  /**
-   * Name of the condition
-   */
-  name: string
-  /**
-   * Name of the service implementing the action
-   * @todo Global conditions?
-   */
-  service?: string
-  /**
-   * Content-type this condition work with?
-   */
-  type: string | string[]
-  /**
-   * Human description of the condition
-   * @todo How to handle parameters?
-   */
-  description: string
-  /**
-   * A schema implementing the check for this condition
-   */
-  schema?: Schema
-  /**
-   * Parameters the condition takes
-   * @todo how to handle parameters?
-   */
-  params?: Params
-}
-type Work = {
-  /**
-   * Content-type this work is on?
-   */
-  type: string
-  service: string
-  /**
-   * The name of the action to perform
-   */
-  action: Action['name']
-  /**
-   * Parameters to send to action
-   * @todo how to handle parameters?
-   */
-  options: object
-  /**
-   * The OADA path to a list to work on
-   */
-  path: string
-  /**
-   * A JSON Schema to limit items to work on
-   */
-  schema: Schema
-}
-
 /**
  * Values to assign to parameters
  */
 type Options = {
-  options: object
+  options: Work['options']
 }
 type ActionInstance = Action & Options
 type ConditionInstance = Condition & Options
@@ -285,7 +205,7 @@ export function compile (
       throw new Error('Non-schema conditions not yet implemented')
     }
 
-    schema.allOf!.push(condition.schema)
+    schema.allOf!.push(condition.schema as Schema)
   }
 
   const { name, service, options } = actions[0]
@@ -297,6 +217,6 @@ export function compile (
       options,
       path,
       schema
-    }
+    } as Work
   ]
 }
