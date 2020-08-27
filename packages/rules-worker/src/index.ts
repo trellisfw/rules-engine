@@ -2,12 +2,14 @@ import Bluebird from 'bluebird'
 import Ajv from 'ajv'
 import debug from 'debug'
 
+import Rule, { assert as assertRule } from '@oada/types/oada/rules/configured'
 import Action from '@oada/types/oada/rules/action'
 import Condition from '@oada/types/oada/rules/condition'
 import Work from '@oada/types/oada/rules/compiled'
 
 import { ListWatch, Options as WatchOptions } from '@oada/list-lib'
 
+const info = debug('rules-worker:info')
 const error = debug('rules-worker:error')
 const ajv = new Ajv()
 
@@ -145,7 +147,7 @@ export class RulesWorker<Service extends string> {
   > = new Map()
   private conn
   private workWatch: ListWatch<Work>
-  private work: Map<string, ListWatch> = new Map()
+  private work: Map<string, WorkRunner<Service>> = new Map()
 
   constructor ({
     name,
@@ -169,8 +171,8 @@ export class RulesWorker<Service extends string> {
       conn,
       // Reload all our work at startup
       resume: false,
-      onItem: this.addWork.bind(this)
       // TODO: Handle deleting work
+      onItem: this.addWork.bind(this)
     })
 
     this.initialize(actions).catch(error)
@@ -224,41 +226,29 @@ export class RulesWorker<Service extends string> {
   /**
    * Registers a "conditional watch" for a new piece of work
    */
-  private async addWork ({ path, schema, action, options }: Work, id: string) {
+  private async addWork (work: Work, id: string) {
     const { actions, name, conn } = this
 
     if (this.work.has(id)) {
       // TODO: Handle modifying exisitng work
     }
 
-    // Compile schema
-    const validator = ajv.compile(schema)
-
-    // Register watch for this work
-    const watch = new ListWatch({
-      // Make sure each work has unique name?
-      name: `${name}-work-${id}`,
-      path,
-      conn,
-      // Only work on each item once
-      resume: true,
-      assertItem: item => {
-        if (!validator(item)) {
-          // TODO: Maybe throw something else
-          throw validator.errors
-        }
-      },
-      // TODO: Handle changes to items?
-      onAddItem: item => {
-        const cb = actions.get(action)
-        if (!cb) {
-          throw new Error(`Unsupported action ${action}`)
-        }
-        return cb(item, options)
+    info(`Adding new work ${id}`)
+    try {
+      // TODO: Should WorkRunner do this too?
+      const action = actions.get(work.action)
+      if (!action) {
+        throw new Error(`Unsupported action: ${work.action}`)
       }
-    })
 
-    this.work.set(id, watch)
+      const workRunner = new WorkRunner(conn, `${name}-${action}`, work, action)
+
+      await workRunner.init()
+      this.work.set(id, workRunner)
+    } catch (err: unknown) {
+      error(`Error adding work ${id}: %O`, err)
+      throw err
+    }
   }
 
   /**
@@ -267,5 +257,136 @@ export class RulesWorker<Service extends string> {
   public async stop () {
     await this.workWatch.stop()
     await Bluebird.map(this.work, ([_, work]) => work.stop())
+  }
+}
+
+/**
+ * Class for running a particular piece of compiled work
+ * Track the corresponding rule and only actually does work if rule enabled.
+ *
+ * @todo I don't love this class...
+ */
+class WorkRunner<S extends string> {
+  private conn
+  /**
+   * Compiled JSON Schema filter for this work
+   */
+  private validator
+  /**
+   * ListWatch for path of potential work
+   */
+  private workWatch?: ListWatch
+  /**
+   * Watch on corresponding rule so we can react to changes
+   */
+  private ruleWatch
+  private _enabled
+  public readonly name
+  /**
+   * Original compiled rule thing from OADA
+   */
+  public readonly work
+  /**
+   * Callback which implement the action involved in this work
+   */
+  private callback
+
+  constructor (
+    conn: Options<S>['conn'],
+    name: string,
+    work: Work,
+    callback: ActionImplementor<S>['callback']
+  ) {
+    const { rule, schema } = work
+
+    this.conn = conn
+    this.name = name
+    this.work = work
+    this.callback = callback
+    // Start disabled?
+    this._enabled = false
+
+    // Pre-compile schema
+    this.validator = ajv.compile(schema)
+
+    // Start watching our rule
+    this.ruleWatch = conn.watch({
+      path: rule._id,
+      watchCallback: this.handleEnabled
+    })
+  }
+
+  /**
+   * Wait for watch on rule and start doing work if appropriate
+   */
+  public async init() {
+    await this.ruleWatch
+    const { data: rule } = await this.conn.get({path: this.work.rule._id})
+    assertRule(rule)
+    if (rule.enabled !== false) {
+      await this.handleEnabled({ enabled: true })
+    }
+  }
+
+  public get enabled () {
+    return this._enabled
+  }
+
+  /**
+   * Check for rule enabled status being changed
+   * @todo handle rule being deleted
+   * @todo can I just watch the enabled section of the rule? IDK OADA man
+   */
+  private async handleEnabled ({ enabled }: Partial<Rule>) {
+    const {
+      conn,
+      name,
+      work: { path, options },
+      validator,
+      callback
+    } = this
+
+    // See if enabled was included in this change to rule
+    if (typeof enabled !== 'undefined') {
+      // Check for "change" to same value
+      if (enabled === this._enabled) {
+        // Ignore change
+        return
+      }
+
+      info(`Work ${name} set to ${enabled ? 'enabled' : 'disabled'}`)
+      this._enabled = enabled
+      if (enabled) {
+        // Register watch for this work
+        this.workWatch = new ListWatch({
+          // Make sure each work has unique name?
+          name,
+          path,
+          conn,
+          // Only work on each item once
+          resume: true,
+          assertItem: item => {
+            if (!validator(item)) {
+              // TODO: Maybe throw something else
+              throw validator.errors
+            }
+          },
+          // TODO: Handle changes to items?
+          onAddItem: item => callback(item, options)
+        })
+      } else {
+        await this.workWatch!.stop()
+        // Get rid of stopped watch
+        this.workWatch = undefined
+      }
+    }
+  }
+
+  /**
+   * Stop all related watches
+   */
+  public async stop () {
+    await this.workWatch?.stop()
+    await this.conn.unwatch(await this.ruleWatch)
   }
 }
