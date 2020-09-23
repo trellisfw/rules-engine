@@ -10,6 +10,10 @@
     "pretest": "npm run build",
     "prepare": "npm run build"
   },
+  "prettier": {
+    "singleQuote": true,
+    "quoteProps": "consistent"
+  },
   "files": [
     "**/*.ts",
     "**/*.ts.map",
@@ -21,6 +25,7 @@
     "@types/bluebird": "^3.5.32",
     "@types/debug": "^4.1.5",
     "@types/node": "^14.6.0",
+    "prettier": "^2.1.2",
     "typescript": "^4.0.0-beta"
   },
   "dependencies": {
@@ -29,6 +34,8 @@
     "ajv": "^6.12.4",
     "bluebird": "^3.7.2",
     "debug": "^4.1.1",
-    "jsonschema8": "^1.1.0"
+    "get-caller-file": "^2.0.5",
+    "jsonschema8": "^1.1.0",
+    "typescript-json-schema": "^0.43.0"
   }
 }

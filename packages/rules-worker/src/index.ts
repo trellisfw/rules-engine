@@ -1,17 +1,21 @@
-import Bluebird from 'bluebird'
-import Ajv from 'ajv'
-import debug from 'debug'
+import Bluebird from 'bluebird';
+import Ajv from 'ajv';
+import debug from 'debug';
+import { JSONSchema8 as Schema } from 'jsonschema8';
+import * as TJS from 'typescript-json-schema';
+import getCallerFile from 'get-caller-file';
 
-import Rule, { assert as assertRule } from '@oada/types/oada/rules/configured'
-import Action from '@oada/types/oada/rules/action'
-import Condition from '@oada/types/oada/rules/condition'
-import Work from '@oada/types/oada/rules/compiled'
+import Rule, { assert as assertRule } from '@oada/types/oada/rules/configured';
+import type Action from '@oada/types/oada/rules/action';
+import type Condition from '@oada/types/oada/rules/condition';
+import type Work from '@oada/types/oada/rules/compiled';
 
-import { ListWatch, Options as WatchOptions } from '@oada/list-lib'
+import { ListWatch, Options as WatchOptions } from '@oada/list-lib';
 
-const info = debug('rules-worker:info')
-const error = debug('rules-worker:error')
-const ajv = new Ajv()
+const info = debug('rules-worker:info');
+const trace = debug('rules-worker:trace');
+const error = debug('rules-worker:error');
+const ajv = new Ajv();
 
 /**
  * Rules Tree
@@ -36,131 +40,163 @@ const rulesTree = {
       _type: 'application/vnd.oada.rules.1+json',
       _rev: 0,
       actions: {
-        _type: 'application/vnd.oada.rules.actions.1+json',
-        _rev: 0,
+        '_type': 'application/vnd.oada.rules.actions.1+json',
+        '_rev': 0,
         '*': {
           _type: 'application/vnd.oada.rules.action.1+json',
-          _rev: 0
-        }
+          _rev: 0,
+        },
       },
       conditions: {
-        _type: 'application/vnd.oada.rules.conditions.1+json',
-        _rev: 0,
+        '_type': 'application/vnd.oada.rules.conditions.1+json',
+        '_rev': 0,
         '*': {
           _type: 'application/vnd.oada.rules.condition.1+json',
-          _rev: 0
-        }
+          _rev: 0,
+        },
       },
       configured: {
-        _type: 'application/vnd.oada.rules.configured.1+json',
-        _rev: 0,
+        '_type': 'application/vnd.oada.rules.configured.1+json',
+        '_rev': 0,
         '*': {
           _type: 'application/vnd.oada.rule.configured.1+json',
-          _rev: 0
-        }
+          _rev: 0,
+        },
       },
       compiled: {
-        _type: 'application/vnd.oada.rules.compiled.1+json',
-        _rev: 0,
+        '_type': 'application/vnd.oada.rules.compiled.1+json',
+        '_rev': 0,
         '*': {
           _type: 'application/vnd.oada.rule.compiled.1+json',
-          _rev: 0
-        }
-      }
-    }
-  }
-}
+          _rev: 0,
+        },
+      },
+    },
+  },
+};
 const serviceRulesTree = {
   bookmarks: {
     _type: 'application/vnd.oada.bookmarks.1+json',
     _rev: 0,
     services: {
-      _type: 'application/vnd.oada.services.1+json',
-      _rev: 0,
+      '_type': 'application/vnd.oada.services.1+json',
+      '_rev': 0,
       '*': {
         _type: 'application/vnd.oada.service.1+json',
         _rev: 0,
-        rules: rulesTree.bookmarks.rules
-      }
-    }
-  }
-}
+        rules: rulesTree.bookmarks.rules,
+      },
+    },
+  },
+};
 
 /**
  * Type for the inputs to the constructor
  *
  * @typeParam Service Don't worry about it, just let TS infer it
  */
-export type Options<Service extends string> = {
+export type Options<
+  Service extends string,
+  Actions extends readonly ActionImplementor<Service, unknown>[]
+> = {
   /**
    * The name of the OADA service to assiate with
    *
    * Should be a constant string
    */
-  name: Service
+  name: Service;
   /**
    * An oada/client type connection
    */
-  conn: WatchOptions<never>['conn']
+  conn: WatchOptions<unknown>['conn'];
 
   /**
    * Array of actions this service implements
    */
-  actions?: ActionImplementor<Service>[]
+  actions?: Actions;
   /**
    * Array of conditions this service implements
+   *
+   * @todo Implement worker provided conditions
    */
-  conditions?: Condition[]
-}
+  conditions?: Condition[];
+};
 
-type Literal<T> = T extends string & infer R ? R : never
+/**
+ * Do magic with type inference stuff.
+ */
+type Literal<T> = T extends string & infer R ? R : never;
+
 /**
  * Representation of an action we implement
  */
-type ActionImplementor<Service extends string> = Action & {
+export interface ActionImplementor<Service extends string, Params = never>
+  extends Action {
   /**
    * Only implement our own actions
    */
-  service: Literal<Service>
+  service: Service;
+  /**
+   * Limit types of our parameters
+   *
+   * MUST be a TypeScript `class` (i.e., not an `interface` or `type`)
+   * and MUST be named (i.e., not an anonymous class)
+   *
+   * @experimental It is more stable and performant to provide `params`
+   * @see params
+   */
+  class?: Params extends never ? never : { new (): Params };
   /**
    * A callback for code to implement this action
    * @todo Better types parameters?
    */
-  callback: (item: any, options: Action['options']) => Promise<void>
+  callback: (item: any, options: Params) => Promise<void>;
 }
 
-const GLOBAL_ROOT = '/bookmarks/rules'
-const ACTIONS_PATH = 'actions'
-const WORK_PATH = 'compiled'
+/**
+ * Lets TypeScript do more inference magic on Actions
+ *
+ * @todo Figure out how to infer better without this function
+ */
+export function Action<S extends string, T = unknown>(
+  action: ActionImplementor<S, T>
+) {
+  return action;
+}
+
+const GLOBAL_ROOT = '/bookmarks/rules';
+const ACTIONS_PATH = 'actions';
+const WORK_PATH = 'compiled';
 
 /**
  * Class for exposing and implemention a worker for the "rules engine"
  *
  * @typeParam Service Don't worry about it, just let TS infer it
  */
-export class RulesWorker<Service extends string> {
-  public readonly path
-  public readonly name
+export class RulesWorker<
+  Service extends string,
+  Actions extends readonly ActionImplementor<Service, any>[]
+> {
+  public readonly path;
+  public readonly name;
   public readonly actions: Map<
     Action['name'],
-    ActionImplementor<Service>['callback']
-  > = new Map()
-  private conn
-  private workWatch: ListWatch<Work>
-  private work: Map<string, WorkRunner<Service>> = new Map()
+    Actions[0]['callback']
+  > = new Map();
 
-  constructor ({
-    name,
-    conn,
-    actions = [],
-    conditions = []
-  }: Options<Service>) {
-    this.name = name
-    this.path = `/bookmarks/services/${name}/rules`
-    this.conn = conn
+  private conn;
+  private workWatch: ListWatch<Work>;
+  private work: Map<string, WorkRunner<Service, {}>> = new Map();
 
-    if (actions.length === 0 && conditions.length === 0) {
-      throw new Error('This service registered neither actions nor conditions')
+  constructor({ name, conn, actions, conditions }: Options<Service, Actions>) {
+    this.name = name;
+    this.path = `/bookmarks/services/${name}/rules`;
+    this.conn = conn;
+
+    const caller = getCallerFile();
+
+    if (!actions?.length && !conditions?.length) {
+      throw new Error('This service registered neither actions nor conditions');
     }
 
     // Setup watch for receving work
@@ -172,40 +208,79 @@ export class RulesWorker<Service extends string> {
       // Reload all our work at startup
       resume: false,
       // TODO: Handle deleting work
-      onItem: this.addWork.bind(this)
-    })
+      onItem: this.addWork.bind(this),
+    });
 
-    this.initialize(actions).catch(error)
+    this.initialize(actions!, caller).catch(error);
   }
 
   /**
    * Do async part of initialization
    */
-  private async initialize (actions: ActionImplementor<Service>[]) {
-    const { conn } = this
+  private async initialize(actions: Actions, caller: string) {
+    const { conn } = this;
+
+    trace(`Initializing with caller`, caller);
+    /**
+     * @todo Find the tsconfig.json of caller?
+     */
+    const compilerOptions: TJS.CompilerOptions = {
+      // @ts-ignore
+      target: 'ES2019',
+      esModuleInterop: true,
+    };
+    /**
+     * Settings for the TypeScript to JSONSchema compiler
+     */
+    const compilerSettings: TJS.PartialArgs = {
+      // Make required properties required in the schema
+      required: true,
+      ignoreErrors: true,
+    };
+    const program = TJS.getProgramFromFiles([caller], compilerOptions);
+    trace(`TS program: %O`, program);
+    trace(`TS options: %O`, program.getCompilerOptions());
 
     // Register our actions
     // TODO: Figure out if actions are already listed?
-    for (const { name, callback, ...rest } of actions) {
-      const action: Action = { name, ...rest }
+    for (const { name, class: _class, callback, ...rest } of actions) {
+      const action: Action = { name, ...rest };
 
-      // TODO: Must be a bug in client if I need this?
+      // TODO: Hacky magic
+      // This is for when params is a class constructor
+      if (_class) {
+        const type = _class.name;
+
+        trace(`Generating action ${name} parameter schema ${type}`);
+        const schema = TJS.generateSchema(program, type, compilerSettings);
+        if (!schema) {
+          throw new Error(
+            `Failed to generate parameter schema for action ${name}, class ${type}`
+          );
+        }
+        trace(`Generated action ${name} parameter schema ${type}: %O`, schema);
+
+        // @ts-ignore
+        action.params = schema as Schema;
+      }
+
+      // TODO: Must be an unimplemented feature in client if I need this?
       // Either that or I still don't understand trees
       // Probably both
       try {
         await conn.put({
           path: `${this.path}/${ACTIONS_PATH}`,
           tree: serviceRulesTree,
-          data: {}
-        })
+          data: {},
+        });
       } catch {}
 
       // Register action in OADA
       const { headers } = await conn.put({
         path: `${this.path}/${ACTIONS_PATH}/${name}`,
         tree: serviceRulesTree,
-        data: action as any
-      })
+        data: action as any,
+      });
       // Link action in global actions list?
       await conn.put({
         path: `${GLOBAL_ROOT}/${ACTIONS_PATH}`,
@@ -213,50 +288,55 @@ export class RulesWorker<Service extends string> {
         data: {
           [`${this.name}-${name}`]: {
             // TODO: Should this link be versioned?
-            _id: headers['content-location'].substring(1)
-          }
-        }
-      })
+            _id: headers['content-location'].substring(1),
+          },
+        },
+      });
 
       // Keep the callback for later
-      this.actions.set(name, callback)
+      this.actions.set(name, callback);
     }
   }
 
   /**
    * Registers a "conditional watch" for a new piece of work
    */
-  private async addWork (work: Work, id: string) {
-    const { actions, name, conn } = this
+  private async addWork(work: Work, id: string) {
+    const { actions, name, conn } = this;
 
     if (this.work.has(id)) {
       // TODO: Handle modifying exisitng work
     }
 
-    info(`Adding new work ${id}`)
+    info(`Adding new work ${id}`);
     try {
       // TODO: Should WorkRunner do this too?
-      const action = actions.get(work.action)
+      const action = actions.get(work.action);
       if (!action) {
-        throw new Error(`Unsupported action: ${work.action}`)
+        throw new Error(`Unsupported action: ${work.action}`);
       }
 
-      const workRunner = new WorkRunner(conn, `${name}-${action}`, work, action)
+      const workRunner = new WorkRunner(
+        conn,
+        `${name}-${action}`,
+        work,
+        action
+      );
 
-      await workRunner.init()
-      this.work.set(id, workRunner)
+      await workRunner.init();
+      this.work.set(id, workRunner);
     } catch (err: unknown) {
-      error(`Error adding work ${id}: %O`, err)
-      throw err
+      error(`Error adding work ${id}: %O`, err);
+      throw err;
     }
   }
 
   /**
    * Stop all of our watches
    */
-  public async stop () {
-    await this.workWatch.stop()
-    await Bluebird.map(this.work, ([_, work]) => work.stop())
+  public async stop() {
+    await this.workWatch.stop();
+    await Bluebird.map(this.work, ([_, work]) => work.stop());
   }
 }
 
@@ -266,70 +346,70 @@ export class RulesWorker<Service extends string> {
  *
  * @todo I don't love this class...
  */
-class WorkRunner<S extends string> {
-  private conn
+class WorkRunner<S extends string, P extends {}> {
+  private conn;
   /**
    * Compiled JSON Schema filter for this work
    */
-  private validator
+  private validator;
   /**
    * ListWatch for path of potential work
    */
-  private workWatch?: ListWatch
+  private workWatch?: ListWatch;
   /**
    * Watch on corresponding rule so we can react to changes
    */
-  private ruleWatch
-  private _enabled
-  public readonly name
+  private ruleWatch;
+  private _enabled;
+  public readonly name;
   /**
    * Original compiled rule thing from OADA
    */
-  public readonly work
+  public readonly work;
   /**
-   * Callback which implement the action involved in this work
+   * Callback which implements the action involved in this work
    */
-  private callback
+  private callback;
 
-  constructor (
-    conn: Options<S>['conn'],
+  constructor(
+    conn: Options<S, []>['conn'],
     name: string,
     work: Work,
-    callback: ActionImplementor<S>['callback']
+    callback: ActionImplementor<S, P>['callback']
   ) {
-    const { rule, schema } = work
+    const { rule, schema } = work;
 
-    this.conn = conn
-    this.name = name
-    this.work = work
-    this.callback = callback
+    this.conn = conn;
+    this.name = name;
+    this.work = work;
+    this.callback = callback;
     // Start disabled?
-    this._enabled = false
+    this._enabled = false;
 
     // Pre-compile schema
-    this.validator = ajv.compile(schema)
+    this.validator = ajv.compile(schema);
 
     // Start watching our rule
     this.ruleWatch = conn.watch({
       path: rule._id,
-      watchCallback: this.handleEnabled
-    })
+      watchCallback: this.handleEnabled,
+    });
   }
 
   /**
    * Wait for watch on rule and start doing work if appropriate
    */
   public async init() {
-    await this.ruleWatch
-    const { data: rule } = await this.conn.get({path: this.work.rule._id})
-    assertRule(rule)
+    await this.ruleWatch;
+    const { data: rule } = await this.conn.get({ path: this.work.rule._id });
+    assertRule(rule);
     if (rule.enabled !== false) {
-      await this.handleEnabled({ enabled: true })
+      await this.handleEnabled({ enabled: true });
     }
   }
 
-  public get enabled () {
-    return this._enabled
+  public get enabled() {
+    return this._enabled;
   }
 
   /**
@@ -337,25 +417,25 @@ class WorkRunner<S extends string> {
    * @todo handle rule being deleted
    * @todo can I just watch the enabled section of the rule? IDK OADA man
    */
-  private async handleEnabled ({ enabled }: Partial<Rule>) {
+  private async handleEnabled({ enabled }: Partial<Rule>) {
     const {
       conn,
       name,
       work: { path, options },
       validator,
-      callback
-    } = this
+      callback,
+    } = this;
 
     // See if enabled was included in this change to rule
     if (typeof enabled !== 'undefined') {
       // Check for "change" to same value
       if (enabled === this._enabled) {
         // Ignore change
-        return
+        return;
       }
 
-      info(`Work ${name} set to ${enabled ? 'enabled' : 'disabled'}`)
-      this._enabled = enabled
+      info(`Work ${name} set to ${enabled ? 'enabled' : 'disabled'}`);
+      this._enabled = enabled;
       if (enabled) {
         // Register watch for this work
         this.workWatch = new ListWatch({
@@ -365,19 +445,19 @@ class WorkRunner<S extends string> {
           conn,
           // Only work on each item once
           resume: true,
-          assertItem: item => {
+          assertItem: (item) => {
             if (!validator(item)) {
               // TODO: Maybe throw something else
-              throw validator.errors
+              throw validator.errors;
             }
           },
           // TODO: Handle changes to items?
-          onAddItem: item => callback(item, options)
-        })
+          onAddItem: (item) => callback(item, options as Literal<P>),
+        });
       } else {
-        await this.workWatch!.stop()
+        await this.workWatch!.stop();
         // Get rid of stopped watch
-        this.workWatch = undefined
+        this.workWatch = undefined;
       }
     }
   }
@@ -385,8 +465,8 @@ class WorkRunner<S extends string> {
   /**
    * Stop all related watches
    */
-  public async stop () {
-    await this.workWatch?.stop()
-    await this.conn.unwatch(await this.ruleWatch)
+  public async stop() {
+    await this.workWatch?.stop();
+    await this.conn.unwatch(await this.ruleWatch);
   }
 }
