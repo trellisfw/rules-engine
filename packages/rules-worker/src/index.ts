@@ -4,6 +4,9 @@ import debug from 'debug';
 import { JSONSchema8 as Schema } from 'jsonschema8';
 import * as TJS from 'typescript-json-schema';
 import getCallerFile from 'get-caller-file';
+import findRoot from 'find-root';
+import { join } from 'path';
+import _glob, { IOptions as GlobOptions } from 'glob';
 
 import Rule, { assert as assertRule } from '@oada/types/oada/rules/configured';
 import type Action from '@oada/types/oada/rules/action';
@@ -16,6 +19,11 @@ const info = debug('rules-worker:info');
 const trace = debug('rules-worker:trace');
 const error = debug('rules-worker:error');
 const ajv = new Ajv();
+
+/**
+ * Promisified glob
+ */
+const glob = Bluebird.promisify<string[], string, GlobOptions>(_glob);
 
 /**
  * Rules Tree
@@ -184,14 +192,14 @@ export class RulesWorker<
     Actions[0]['callback']
   > = new Map();
 
-  private conn;
-  private workWatch: ListWatch<Work>;
-  private work: Map<string, WorkRunner<Service, {}>> = new Map();
+  #conn;
+  #workWatch: ListWatch<Work>;
+  #work: Map<string, WorkRunner<Service, {}>> = new Map();
 
   constructor({ name, conn, actions, conditions }: Options<Service, Actions>) {
     this.name = name;
     this.path = `/bookmarks/services/${name}/rules`;
-    this.conn = conn;
+    this.#conn = conn;
 
     const caller = getCallerFile();
 
@@ -200,7 +208,7 @@ export class RulesWorker<
     }
 
     // Setup watch for receving work
-    this.workWatch = new ListWatch({
+    this.#workWatch = new ListWatch({
       name,
       path: `${this.path}/${WORK_PATH}`,
       tree: serviceRulesTree,
@@ -218,17 +226,26 @@ export class RulesWorker<
    * Do async part of initialization
    */
   private async initialize(actions: Actions, caller: string) {
-    const { conn } = this;
+    const conn = this.#conn;
 
     trace(`Initializing with caller`, caller);
-    /**
-     * @todo Find the tsconfig.json of caller?
-     */
-    const compilerOptions: TJS.CompilerOptions = {
-      // @ts-ignore
-      target: 'ES2019',
-      esModuleInterop: true,
-    };
+    const root = findRoot(caller);
+    trace(`Caller root: ${root}`);
+
+    // Load TS compiler options for caller
+    const {
+      compilerOptions,
+    }: { compilerOptions: TJS.CompilerOptions } = await import(
+      join(root, 'tsconfig')
+    );
+    // Find TS files for program
+    const files = await glob(
+      join(compilerOptions.rootDir ?? '', '**', '*.ts'),
+      {
+        cwd: root,
+      }
+    );
+
     /**
      * Settings for the TypeScript to JSONSchema compiler
      */
@@ -237,8 +254,7 @@ export class RulesWorker<
       required: true,
       ignoreErrors: true,
     };
-    const program = TJS.getProgramFromFiles([caller], compilerOptions);
-    trace(`TS program: %O`, program);
+    const program = TJS.getProgramFromFiles(files, compilerOptions, root);
     trace(`TS options: %O`, program.getCompilerOptions());
 
     // Register our actions
@@ -251,7 +267,7 @@ export class RulesWorker<
       if (_class) {
         const type = _class.name;
 
-        trace(`Generating action ${name} parameter schema ${type}`);
+        info(`Generating action ${name} parameter schema ${type}`);
         const schema = TJS.generateSchema(program, type, compilerSettings);
         if (!schema) {
           throw new Error(
@@ -302,9 +318,10 @@ export class RulesWorker<
    * Registers a "conditional watch" for a new piece of work
    */
   private async addWork(work: Work, id: string) {
-    const { actions, name, conn } = this;
+    const { actions, name } = this;
+    const conn = this.#conn;
 
-    if (this.work.has(id)) {
+    if (this.#work.has(id)) {
       // TODO: Handle modifying exisitng work
     }
 
@@ -324,7 +341,7 @@ export class RulesWorker<
       );
 
       await workRunner.init();
-      this.work.set(id, workRunner);
+      this.#work.set(id, workRunner);
     } catch (err: unknown) {
       error(`Error adding work ${id}: %O`, err);
       throw err;
@@ -335,8 +352,8 @@ export class RulesWorker<
    * Stop all of our watches
    */
   public async stop() {
-    await this.workWatch.stop();
-    await Bluebird.map(this.work, ([_, work]) => work.stop());
+    await this.#workWatch.stop();
+    await Bluebird.map(this.#work, ([_, work]) => work.stop());
   }
 }
 
