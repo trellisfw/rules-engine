@@ -1,7 +1,6 @@
 import Bluebird from 'bluebird';
 import Ajv from 'ajv';
 import debug from 'debug';
-import { JSONSchema8 as Schema } from 'jsonschema8';
 import * as TJS from 'typescript-json-schema';
 import getCallerFile from 'get-caller-file';
 import findRoot from 'find-root';
@@ -172,9 +171,70 @@ export function Action<S extends string, T = unknown>(
   return action;
 }
 
+/**
+ * Representation of an action we implement
+ */
+export interface ConditionImplementor<Service extends string, Params = never>
+  extends Condition {
+  /**
+   * Only implement our own actions
+   */
+  service: Service;
+  /**
+   * Limit types of our parameters
+   *
+   * MUST be a TypeScript `class` (i.e., not an `interface` or `type`)
+   * and MUST be named (i.e., not an anonymous class)
+   *
+   * @experimental It is more stable and performant to provide `params`
+   * @see params
+   */
+  class?: Params extends never ? never : { new (): Params };
+  /**
+   * A callback for code to implement this action
+   * @todo Better types parameters?
+   */
+  callback?: (item: any, options: Params) => Promise<void>;
+}
+
 const GLOBAL_ROOT = '/bookmarks/rules';
 const ACTIONS_PATH = 'actions';
 const WORK_PATH = 'compiled';
+
+/**
+ * Generates JSON schemata from TypeScript classes.
+ * @internal
+ */
+export async function schemaGenerator(caller: string) {
+  /**
+   * Settings for the TypeScript to JSONSchema compiler
+   */
+  const compilerSettings: TJS.PartialArgs = {
+    // Make required properties required in the schema
+    required: true,
+    ignoreErrors: true,
+  };
+
+  const root = findRoot(caller);
+  trace(`Caller root: ${root}`);
+
+  // Load TS compiler options for caller
+  const {
+    compilerOptions,
+  }: { compilerOptions: TJS.CompilerOptions } = await import(
+    join(root, 'tsconfig')
+  );
+
+  // Find TS files for program
+  const files = await glob(join(compilerOptions.rootDir ?? '', '**', '*.ts'), {
+    cwd: root,
+  });
+  const program = TJS.getProgramFromFiles(files, compilerOptions, root);
+
+  const generator = TJS.buildGenerator(program, compilerSettings);
+
+  return generator;
+}
 
 /**
  * Class for exposing and implemention a worker for the "rules engine"
@@ -229,55 +289,15 @@ export class RulesWorker<
     const conn = this.#conn;
 
     trace(`Initializing with caller`, caller);
-    const root = findRoot(caller);
-    trace(`Caller root: ${root}`);
+    const schemaGen = await schemaGenerator(caller);
 
-    // Load TS compiler options for caller
-    const {
-      compilerOptions,
-    }: { compilerOptions: TJS.CompilerOptions } = await import(
-      join(root, 'tsconfig')
-    );
-    // Find TS files for program
-    const files = await glob(
-      join(compilerOptions.rootDir ?? '', '**', '*.ts'),
-      {
-        cwd: root,
-      }
-    );
-
-    /**
-     * Settings for the TypeScript to JSONSchema compiler
-     */
-    const compilerSettings: TJS.PartialArgs = {
-      // Make required properties required in the schema
-      required: true,
-      ignoreErrors: true,
-    };
-    const program = TJS.getProgramFromFiles(files, compilerOptions, root);
-    trace(`TS options: %O`, program.getCompilerOptions());
-
-    // Register our actions
-    // TODO: Figure out if actions are already listed?
-    for (const { name, class: _class, callback, ...rest } of actions) {
+    for (const { name, class: clazz, callback, ...rest } of actions) {
       const action: Action = { name, ...rest };
 
       // TODO: Hacky magic
-      // This is for when params is a class constructor
-      if (_class) {
-        const type = _class.name;
-
-        info(`Generating action ${name} parameter schema ${type}`);
-        const schema = TJS.generateSchema(program, type, compilerSettings);
-        if (!schema) {
-          throw new Error(
-            `Failed to generate parameter schema for action ${name}, class ${type}`
-          );
-        }
-        trace(`Generated action ${name} parameter schema ${type}: %O`, schema);
-
+      if (clazz) {
         // @ts-ignore
-        action.params = schema as Schema;
+        action.params = schemaGen?.getSchemaForSymbol(clazz.name);
       }
 
       // TODO: Must be an unimplemented feature in client if I need this?
