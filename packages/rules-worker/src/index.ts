@@ -131,6 +131,11 @@ export class RulesWorker<
     Actions[0]['callback']
   > = new Map();
 
+  /**
+   * Allow checking if async initialization is done.
+   */
+  public readonly initialized: Promise<void>;
+
   #conn;
   #workWatch: ListWatch<Work>;
   #work: Map<string, WorkRunner<Service, {}>> = new Map();
@@ -158,7 +163,9 @@ export class RulesWorker<
       onItem: this.addWork.bind(this),
     });
 
-    this.initialize(actions!, caller).catch(error);
+    this.initialized = Bluebird.try(async () => {
+      await this.initialize(actions!, caller).catch(error);
+    });
   }
 
   /**

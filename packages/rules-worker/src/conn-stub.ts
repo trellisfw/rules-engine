@@ -7,7 +7,7 @@ const emptyResp: SocketResponse = {
   requestId: 'testid',
   status: 200,
   statusText: 'OK',
-  headers: {},
+  headers: { 'content-location': '' },
   data: {},
 };
 
