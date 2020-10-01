@@ -126,3 +126,56 @@ new RulesWorker({
   ],
 });
 ```
+
+## Conditions with Input Options
+
+Like actions, conditions can also have inputs beyond just
+the item the rule is operating on.
+The library facilitates advertising these to the Rules Engine.
+
+Below is an example of the automagical way.
+You can also supply you own schema for the inputs
+with the key `params` as in the action example above.
+
+### Automagical TypeScript way
+
+```typescript
+/**
+ * Description of inputs to condition
+ */
+class Inputs {
+  a?: string = 'foo';
+  b!: number;
+}
+
+new RulesWorker({
+  name: 'test',
+  conn, /* @oada/client instance */
+  conditions: [
+    Condition({
+      service: 'test',
+      name: 'test-condition',
+      description: 'a is {{a}} a and b >= {{b}}',
+      class: Inputs,
+      type: '*/*',
+      // Function which takes the inputs and returns JSON Schema
+      schema({ a, b }) {
+        // TypeScript will know the function parameter is of type Inputs
+        return {
+          type: 'object',
+          properties: {
+            a: {
+              const: a
+            },
+            b: {
+              type: 'number',
+              minimum: b
+            }
+          },
+        };
+      },
+    });
+  ],
+});
+
+```
