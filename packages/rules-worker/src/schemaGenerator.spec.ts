@@ -1,6 +1,7 @@
+import { Schema } from '@oada/types';
 import test from 'ava';
 
-import { schemaGenerator } from './schemaGenerator';
+import { schemaGenerator, SchemaInput, renderSchema } from './schemaGenerator';
 
 test('it should compile TS class to JSON Schema', async (t) => {
   /**
@@ -40,5 +41,31 @@ test('it should compile TS class to JSON Schema', async (t) => {
         },
       },
     },
+  });
+});
+
+test('it should render schema with inputs', (t) => {
+  const inschema: Schema = {
+    // @ts-ignore
+    type: SchemaInput('type'),
+    properties: {
+      a: {},
+      [SchemaInput('prop')]: { type: 'integer' },
+    },
+  };
+
+  const { schema, pointers } = renderSchema(inschema);
+
+  t.deepEqual(schema, {
+    // @ts-ignore
+    type: 'Symbol(type)',
+    properties: {
+      'a': {},
+      'Symbol(prop)': { type: 'integer' },
+    },
+  });
+  t.deepEqual(pointers, {
+    '/type': false,
+    '/properties/Symbol(prop)': true,
   });
 });

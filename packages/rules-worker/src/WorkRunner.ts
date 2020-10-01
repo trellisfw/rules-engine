@@ -50,7 +50,7 @@ export class WorkRunner<S extends string, P extends {}> {
   private callback;
 
   constructor(
-    conn: Options<S, []>['conn'],
+    conn: Options<S, [], []>['conn'],
     name: string,
     work: Work,
     callback: ActionImplementor<S, P>['callback']

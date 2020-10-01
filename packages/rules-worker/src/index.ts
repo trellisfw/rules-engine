@@ -9,8 +9,9 @@ import type Work from '@oada/types/oada/rules/compiled';
 import { ListWatch, Options as WatchOptions } from '@oada/list-lib';
 
 import { rulesTree, serviceRulesTree } from './trees';
-import { schemaGenerator } from './schemaGenerator';
+import { renderSchema, schemaGenerator } from './schemaGenerator';
 import { WorkRunner } from './WorkRunner';
+import { JSONSchema8 as Schema } from 'jsonschema8';
 
 const info = debug('rules-worker:info');
 const trace = debug('rules-worker:trace');
@@ -23,7 +24,8 @@ const error = debug('rules-worker:error');
  */
 export type Options<
   Service extends string,
-  Actions extends readonly ActionImplementor<Service, unknown>[]
+  Actions extends readonly ActionImplementor<Service, unknown>[],
+  Conditions extends readonly ConditionImplementor<Service, unknown>[]
 > = {
   /**
    * The name of the OADA service to assiate with
@@ -45,7 +47,7 @@ export type Options<
    *
    * @todo Implement worker provided conditions
    */
-  conditions?: Condition[];
+  conditions?: Conditions;
 };
 
 /**
@@ -88,10 +90,11 @@ export function Action<S extends string, T = unknown>(
 /**
  * Representation of an action we implement
  */
+// @ts-ignore
 export interface ConditionImplementor<Service extends string, Params = never>
   extends Condition {
   /**
-   * Only implement our own actions
+   * Only implement our own conditions
    */
   service: Service;
   /**
@@ -105,14 +108,33 @@ export interface ConditionImplementor<Service extends string, Params = never>
    */
   class?: Params extends never ? never : { new (): Params };
   /**
+   * A JSON Schema to implement this condition.
+   *
+   * Can also be a function which returns a schema using inputs.
+   * @see params
+   */
+  schema?: Schema | ((params: Params) => Schema);
+  /**
    * A callback for code to implement this action
    * @todo Better types parameters?
    */
   callback?: (item: any, options: Params) => Promise<void>;
 }
 
+/**
+ * Lets TypeScript do more inference magic on Actions
+ *
+ * @todo Figure out how to infer better without this function
+ */
+export function Condition<S extends string, T = unknown>(
+  condition: ConditionImplementor<S, T>
+) {
+  return condition;
+}
+
 const GLOBAL_ROOT = '/bookmarks/rules';
 const ACTIONS_PATH = 'actions';
+const CONDITIONS_PATH = 'conditions';
 const WORK_PATH = 'compiled';
 
 /**
@@ -122,13 +144,18 @@ const WORK_PATH = 'compiled';
  */
 export class RulesWorker<
   Service extends string,
-  Actions extends readonly ActionImplementor<Service, any>[]
+  Actions extends readonly ActionImplementor<Service, any>[],
+  Conditions extends readonly ConditionImplementor<Service, any>[]
 > {
   public readonly path;
   public readonly name;
   public readonly actions: Map<
     Action['name'],
     Actions[0]['callback']
+  > = new Map();
+  public readonly conditions: Map<
+    Condition['name'],
+    Conditions[0]['callback']
   > = new Map();
 
   /**
@@ -140,7 +167,12 @@ export class RulesWorker<
   #workWatch: ListWatch<Work>;
   #work: Map<string, WorkRunner<Service, {}>> = new Map();
 
-  constructor({ name, conn, actions, conditions }: Options<Service, Actions>) {
+  constructor({
+    name,
+    conn,
+    actions,
+    conditions,
+  }: Options<Service, Actions, Conditions>) {
     this.name = name;
     this.path = `/bookmarks/services/${name}/rules`;
     this.#conn = conn;
@@ -164,20 +196,24 @@ export class RulesWorker<
     });
 
     this.initialized = Bluebird.try(async () => {
-      await this.initialize(actions!, caller).catch(error);
+      await this.initialize(actions, conditions, caller).catch(error);
     });
   }
 
   /**
    * Do async part of initialization
    */
-  private async initialize(actions: Actions, caller: string) {
+  private async initialize(
+    actions: Actions | undefined,
+    conditions: Conditions | undefined,
+    caller: string
+  ) {
     const conn = this.#conn;
 
     trace(`Initializing with caller`, caller);
     const schemaGen = await schemaGenerator(caller);
 
-    for (const { name, class: clazz, callback, ...rest } of actions) {
+    for (const { name, class: clazz, callback, ...rest } of actions || []) {
       const action: Action = { name, ...rest };
 
       // TODO: Hacky magic
@@ -217,6 +253,71 @@ export class RulesWorker<
 
       // Keep the callback for later
       this.actions.set(name, callback);
+    }
+    for (const {
+      name,
+      schema: inschema,
+      class: clazz,
+      callback,
+      ...rest
+    } of conditions || []) {
+      const condition: Condition = { name, ...rest };
+
+      if (typeof inschema === 'function') {
+        const inputs = new Proxy(
+          {},
+          { get: (_, prop) => Symbol(prop.toString()) }
+        );
+        condition.schema = inschema(inputs) as Condition['schema'];
+      } else {
+        condition.schema = inschema as Condition['schema'];
+      }
+
+      if (condition.schema) {
+        const { pointers, schema } = renderSchema(condition.schema as any);
+        condition.schema = schema as Condition['schema'];
+        condition.pointers = pointers;
+      }
+
+      // TODO: Hacky magic
+      if (clazz) {
+        // @ts-ignore
+        condition.params = schemaGen?.getSchemaForSymbol(clazz.name);
+      }
+
+      // TODO: Must be an unimplemented feature in client if I need this?
+      // Either that or I still don't understand trees
+      // Probably both
+      try {
+        await conn.put({
+          path: `${this.path}/${CONDITIONS_PATH}`,
+          tree: serviceRulesTree,
+          data: {},
+        });
+      } catch {}
+
+      // Register action in OADA
+      const { headers } = await conn.put({
+        path: `${this.path}/${CONDITIONS_PATH}/${name}`,
+        tree: serviceRulesTree,
+        data: condition as any,
+      });
+      // Link action in global actions list?
+      await conn.put({
+        path: `${GLOBAL_ROOT}/${CONDITIONS_PATH}`,
+        tree: rulesTree,
+        data: {
+          [`${this.name}-${name}`]: {
+            // TODO: Should this link be versioned?
+            _id: headers['content-location'].substring(1),
+          },
+        },
+      });
+
+      if (callback) {
+        // Keep the callback for later
+        this.conditions.set(name, callback);
+      }
     }
   }
 
