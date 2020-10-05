@@ -86,7 +86,7 @@ The upside is that JSON Schema is what the Rules Engine actually uses,
 and this approach gives finer control over the advertised input schema.
 
 ```typescript
-import { JSONSchema8 as Schema } from 'jsonschema8';
+import type { JSONSchema8 as Schema } from 'jsonschema8';
 
 import { RulesWorker, Action } from '@oada/rules-worker';
 
