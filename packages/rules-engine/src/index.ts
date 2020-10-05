@@ -1,14 +1,25 @@
-import { JSONSchema8 as Schema } from 'jsonschema8'
-import { is } from 'type-is'
+import type { JSONSchema8 as Schema } from 'jsonschema8';
+import { is } from 'type-is';
+import cloneDeep from 'clone-deep';
+import pointer from 'json-pointer';
 
-import Action from '@oada/types/oada/rules/action'
+import type Action from '@oada/types/oada/rules/action';
 /**
  * @todo Implement conditions besides schemas
  */
-import Condition from '@oada/types/oada/rules/condition'
-import Work from '@oada/types/oada/rules/compiled'
+import type Condition from '@oada/types/oada/rules/condition';
+import type Work from '@oada/types/oada/rules/compiled';
 
-import type { OADAClient } from '@oada/client'
+import type { OADAClient } from '@oada/client';
+
+declare module 'json-pointer' {
+  function set(
+    object: object,
+    pointer: string | readonly string[],
+    value: any
+  ): void;
+  function get(object: object, pointer: string | readonly string[]): unknown;
+}
 
 /**
  * Rules Tree
@@ -25,7 +36,7 @@ import type { OADAClient } from '@oada/client'
  *  | List of "compiled" inputs to be run by a worker
  *  /compiled
  */
-const rulesTree = {
+const rulesTree = <const>{
   bookmarks: {
     _type: 'application/vnd.oada.bookmarks.1+json',
     _rev: 0,
@@ -33,85 +44,88 @@ const rulesTree = {
       _type: 'application/vnd.oada.rules.1+json',
       _rev: 0,
       actions: {
-        _type: 'application/vnd.oada.rules.actions.1+json',
-        _rev: 0,
+        '_type': 'application/vnd.oada.rules.actions.1+json',
+        '_rev': 0,
         '*': {
           _type: 'application/vnd.oada.rules.action.1+json',
-          _rev: 0
-        }
+          _rev: 0,
+        },
       },
       conditions: {
-        _type: 'application/vnd.oada.rules.conditions.1+json',
-        _rev: 0,
+        '_type': 'application/vnd.oada.rules.conditions.1+json',
+        '_rev': 0,
         '*': {
           _type: 'application/vnd.oada.rules.condition.1+json',
-          _rev: 0
-        }
+          _rev: 0,
+        },
       },
       configured: {
-        _type: 'application/vnd.oada.rules.configured.1+json',
-        _rev: 0,
+        '_type': 'application/vnd.oada.rules.configured.1+json',
+        '_rev': 0,
         '*': {
           _type: 'application/vnd.oada.rule.configured.1+json',
-          _rev: 0
-        }
+          _rev: 0,
+        },
       },
       compiled: {
-        _type: 'application/vnd.oada.rules.compiled.1+json',
-        _rev: 0,
+        '_type': 'application/vnd.oada.rules.compiled.1+json',
+        '_rev': 0,
         '*': {
           _type: 'application/vnd.oada.rule.compiled.1+json',
-          _rev: 0
-        }
-      }
-    }
-  }
-}
-const serviceRulesTree = {
+          _rev: 0,
+        },
+      },
+    },
+  },
+};
+const serviceRulesTree = <const>{
   bookmarks: {
     _type: 'application/vnd.oada.bookmarks.1+json',
     _rev: 0,
     services: {
-      _type: 'application/vnd.oada.services.1+json',
-      _rev: 0,
+      '_type': 'application/vnd.oada.services.1+json',
+      '_rev': 0,
       '*': {
         _type: 'application/vnd.oada.service.1+json',
         _rev: 0,
-        rules: rulesTree.bookmarks
-      }
-    }
-  }
-}
+        rules: rulesTree.bookmarks,
+      },
+    },
+  },
+};
 
 /**
  * Values to assign to parameters
  */
-type Options = {
-  options: Work['options']
+interface Options {
+  options: Work['options'];
 }
-type ActionInstance = Action & Options
-type ConditionInstance = Condition & Options
+interface ActionInstance extends Action, Options {}
+interface ConditionInstance extends Condition, Options {}
+
 /**
  * A rule to be "compiled"
  */
-type RuleInputs = {
-  type: string
-  path: string
+interface RuleInputs {
+  type: string;
+  path: string;
   // Represented as list in OADA?
-  conditions: Set<ConditionInstance>
+  conditions: Set<Readonly<ConditionInstance>>;
   // Represented as list in OADA?
-  actions: ActionInstance[]
+  actions: readonly Readonly<ActionInstance>[];
 }
 
-type EngineOptions = {
-  conn: OADAClient
+interface EngineOptions {
+  conn: OADAClient;
 }
-// Not sure this class is a good idea yet
+/**
+ * Not sure this class is a good idea yet
+ */
 export class RulesEngine {
-  private conn
+  #conn;
 
-  constructor ({ conn }: EngineOptions) {
-    this.conn = conn
+  constructor({ conn }: EngineOptions) {
+    this.#conn = conn;
   }
 
   /**
@@ -119,22 +133,22 @@ export class RulesEngine {
    *
    * @param rule Description of rule to compile and run
    */
-  public async register (rule: RuleInputs) {
-    const { conn } = this
+  public async register(rule: RuleInputs) {
+    const conn = this.#conn;
 
     // Compile rule
-    const work = compile(rule)
+    const work = compile(rule);
 
     // Register rule in OADA
     // TODO: Link rule to actions and conditions instead of embedding them?
     const { headers } = await conn.post({
       path: '/bookmarks/rules/configured',
-        tree: rulesTree,
+      tree: rulesTree,
       data: {
         enabled: true,
-        ...rule
-      } as any
-    })
+        ...rule,
+      } as any,
+    });
 
     // Register the work in OADA
     for (const piece of work) {
@@ -142,14 +156,14 @@ export class RulesEngine {
         path: `/bookmarks/services/${piece.service}/rules/compiled`,
         tree: serviceRulesTree,
         data: {
-          // Add a link to the rule this work is for?
+          ...piece,
+          // Add a link to the rule this work is for
           rule: {
             _id: headers['content-location'].substring(1),
-            _rev: 0
+            _rev: 0,
           },
-          ...piece
-        } as any
-      })
+        } as any,
+      });
     }
   }
 
@@ -159,56 +173,79 @@ export class RulesEngine {
    * @todo Implement this
    */
   public async unregister() {
-    throw new Error('Not yet implemented')
+    throw new Error('Not yet implemented');
   }
 }
 
 /**
  * "Compile" a rule to a set of runnable pieces of work
  *
- * @param rule then rule to be compiled
+ * @param rule the rule to be compiled
  * @param checkTypes Ensure that the types of the rule make sense
  * @returns An array of work that implement the rule
  */
-export function compile (
+export function compile(
   { path, type, conditions, actions }: RuleInputs,
+  /**
+   * @default false
+   */
   checkTypes: boolean = false
 ): Work[] {
   if (checkTypes) {
     // Check that types make sense
     try {
       for (const condition of conditions) {
-
         if (!is(type, ([] as string[]).concat(condition.type))) {
-          throw new Error()
+          throw new Error();
         }
       }
       for (const action of actions) {
         if (!is(type, ([] as string[]).concat(action.type))) {
-          throw new Error()
+          throw new Error();
         }
       }
     } catch (err) {
-      throw new Error('Types of conditions/actions do not align')
+      throw new Error('Types of conditions/actions do not align');
     }
   }
 
   // TODO: Implement multiple actions
   if (actions.length > 1) {
-    throw new Error('Rules with multiple actions not yet implemented')
+    throw new Error('Rules with multiple actions not yet implemented');
   }
 
   // "Compile condtions"
-  const schema: Schema = { allOf: [] }
+  const schema: Schema = { allOf: [] };
   for (const condition of conditions) {
     if (!condition.schema) {
-      throw new Error('Non-schema conditions not yet implemented')
+      throw new Error('Non-schema conditions not yet implemented');
     }
 
-    schema.allOf!.push(condition.schema as Schema)
+    let sschema = condition.schema as object;
+    // Map inputs onto schema
+    if (condition.options && condition.pointers) {
+      sschema = cloneDeep(condition.schema) as object;
+
+      Object.entries(condition.pointers).forEach(([p, { name, iskey }]) => {
+        const pp = pointer.parse(p);
+        const val = condition.options![name]! as string;
+
+        if (iskey) {
+          const oldval = pp.pop()!;
+          // Copy child under new key
+          pointer.set(sschema, [...pp, val], pointer.get(sschema, pp));
+          // Unset old key
+          pointer.set(sschema, [...pp, oldval], undefined);
+        } else {
+          pointer.set(sschema, pp, val);
+        }
+      });
+    }
+
+    schema.allOf!.push(sschema as Schema);
   }
 
-  const { name, service, options } = actions[0]
+  const [{ name, service, options }] = actions;
   return [
     {
       type,
@@ -216,7 +253,7 @@ export function compile (
       action: name,
       options,
       path,
-      schema
-    } as Work
-  ]
+      schema,
+    } as Work,
+  ];
 }
