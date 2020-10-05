@@ -296,7 +296,6 @@ export class RulesWorker<
       if (condition.schema) {
         const { pointers, schema } = renderSchema(condition.schema as any);
         condition.schema = schema as Condition['schema'];
-        // @ts-ignore
         condition.pointers = pointers;
       }
 

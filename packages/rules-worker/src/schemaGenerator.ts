@@ -61,8 +61,6 @@ export function SchemaInput(name: string) {
 }
 /**
  * Description of a path into a JSON Schema where an input should be applied.
- *
- * @todo update @oada/types for this
  */
 export interface InputPath {
   path: string[];
