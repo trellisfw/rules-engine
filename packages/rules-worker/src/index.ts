@@ -8,7 +8,7 @@ import type Work from '@oada/types/oada/rules/compiled';
 
 import { ListWatch, Options as WatchOptions } from '@oada/list-lib';
 
-import { rulesTree, serviceRulesTree } from './trees';
+import { fillTree, rulesTree, serviceRulesTree } from './trees';
 import { renderSchema, schemaGenerator } from './schemaGenerator';
 import { WorkRunner } from './WorkRunner';
 import { JSONSchema8 as Schema } from 'jsonschema8';
@@ -164,7 +164,7 @@ export class RulesWorker<
   public readonly initialized: Promise<void>;
 
   #conn;
-  #workWatch: ListWatch<Work>;
+  #workWatch?: ListWatch<Work>;
   #work: Map<string, WorkRunner<Service, {}>> = new Map();
 
   constructor({
@@ -183,6 +183,7 @@ export class RulesWorker<
       throw new Error('This service registered neither actions nor conditions');
     }
 
+    /*
     // Setup watch for receving work
     this.#workWatch = new ListWatch({
       name,
@@ -194,6 +195,7 @@ export class RulesWorker<
       // TODO: Handle deleting work
       onItem: this.addWork.bind(this),
     });
+     */
 
     this.initialized = Bluebird.try(async () => {
       await this.initialize(actions, conditions, caller).catch(error);
@@ -213,6 +215,23 @@ export class RulesWorker<
     trace(`Initializing with caller`, caller);
     const schemaGen = await schemaGenerator(caller);
 
+    // Ensure service rules tree
+    await fillTree(conn, serviceRulesTree, this.path);
+    // Ensure global rules tree
+    await fillTree(conn, rulesTree, GLOBAL_ROOT);
+
+    // Setup watch for receving work
+    this.#workWatch = new ListWatch({
+      name: this.name,
+      path: `${this.path}/${WORK_PATH}`,
+      tree: serviceRulesTree,
+      conn,
+      // Reload all our work at startup
+      resume: false,
+      // TODO: Handle deleting work
+      onItem: this.addWork.bind(this),
+    });
+
     for (const { name, class: clazz, callback, ...rest } of actions || []) {
       const action: Action = { name, ...rest };
 
@@ -221,17 +240,6 @@ export class RulesWorker<
         // @ts-ignore
         action.params = schemaGen?.getSchemaForSymbol(clazz.name);
       }
-
-      // TODO: Must be an unimplemented feature in client if I need this?
-      // Either that or I still don't understand trees
-      // Probably both
-      try {
-        await conn.put({
-          path: `${this.path}/${ACTIONS_PATH}`,
-          tree: serviceRulesTree,
-          data: {},
-        });
-      } catch {}
 
       // Register action in OADA
       const { headers } = await conn.put({
@@ -284,17 +292,6 @@ export class RulesWorker<
         // @ts-ignore
         condition.params = schemaGen?.getSchemaForSymbol(clazz.name);
       }
-
-      // TODO: Must be an unimplemented feature in client if I need this?
-      // Either that or I still don't understand trees
-      // Probably both
-      try {
-        await conn.put({
-          path: `${this.path}/${CONDITIONS_PATH}`,
-          tree: serviceRulesTree,
-          data: {},
-        });
-      } catch {}
 
       // Register action in OADA
       const { headers } = await conn.put({
@@ -359,7 +356,7 @@ export class RulesWorker<
    * Stop all of our watches
    */
   public async stop() {
-    await this.#workWatch.stop();
+    await (this.#workWatch && this.#workWatch.stop());
     await Bluebird.map(this.#work, ([_, work]) => work.stop());
   }
 }

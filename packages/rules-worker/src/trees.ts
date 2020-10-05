@@ -1,3 +1,7 @@
+import pointer from 'json-pointer';
+
+import type { Options } from './';
+
 /**
  * Rules Tree
  * @todo What should _types be?
@@ -13,7 +17,7 @@
  *  | List of "compiled" inputs to be run by a worker
  *  /compiled
  */
-export const rulesTree = {
+export const rulesTree = <const>{
   bookmarks: {
     _type: 'application/vnd.oada.bookmarks.1+json',
     _rev: 0,
@@ -56,7 +60,7 @@ export const rulesTree = {
   },
 };
 
-export const serviceRulesTree = {
+export const serviceRulesTree = <const>{
   bookmarks: {
     _type: 'application/vnd.oada.bookmarks.1+json',
     _rev: 0,
@@ -71,3 +75,25 @@ export const serviceRulesTree = {
     },
   },
 };
+
+/**
+ * Fill out tree one level at a time
+ *
+ * Client gets mad if too make levels of deep PUT don't exist.
+ * @todo Must be an unimplemented feature in client if I need this?
+ */
+export async function fillTree(
+  conn: Options<any, any, any>['conn'],
+  tree: object,
+  path: string
+) {
+  const p = pointer.parse(path);
+  let l;
+  for (l = 1; l <= p.length; l++) {
+    await conn.put({
+      path: pointer.compile(p.slice(0, l)),
+      tree,
+      data: {},
+    });
+  }
+}

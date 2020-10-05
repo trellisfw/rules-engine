@@ -1,4 +1,4 @@
-import { Schema } from '@oada/types';
+import { JSONSchema8 as Schema } from 'jsonschema8';
 import test from 'ava';
 
 import { schemaGenerator, SchemaInput, renderSchema } from './schemaGenerator';
