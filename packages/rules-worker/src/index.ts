@@ -12,6 +12,7 @@ import { fillTree, rulesTree, serviceRulesTree } from './trees';
 import { renderSchema, schemaGenerator } from './schemaGenerator';
 import { WorkRunner } from './WorkRunner';
 import { JSONSchema8 as Schema } from 'jsonschema8';
+import { JsonSchemaGenerator } from 'typescript-json-schema';
 
 const info = debug('rules-worker:info');
 const trace = debug('rules-worker:trace');
@@ -167,6 +168,18 @@ export class RulesWorker<
   #workWatch?: ListWatch<Work>;
   #work: Map<string, WorkRunner<Service, {}>> = new Map();
 
+  /**
+   * File which called the constructor
+   */
+  #caller;
+  #schemaGen?: Promise<JsonSchemaGenerator | null>;
+  private get schemaGen() {
+    if (!this.#schemaGen) {
+      this.#schemaGen = schemaGenerator(this.#caller);
+    }
+    return this.#schemaGen;
+  }
+
   constructor({
     name,
     conn,
@@ -177,7 +190,7 @@ export class RulesWorker<
     this.path = `/bookmarks/services/${name}/rules`;
     this.#conn = conn;
 
-    const caller = getCallerFile();
+    this.#caller = getCallerFile();
 
     if (!actions?.length && !conditions?.length) {
       throw new Error('This service registered neither actions nor conditions');
@@ -198,7 +211,7 @@ export class RulesWorker<
      */
 
     this.initialized = Bluebird.try(async () => {
-      await this.initialize(actions, conditions, caller).catch(error);
+      await this.initialize(actions, conditions).catch(error);
     });
   }
 
@@ -207,13 +220,11 @@ export class RulesWorker<
    */
   private async initialize(
     actions: Actions | undefined,
-    conditions: Conditions | undefined,
-    caller: string
+    conditions: Conditions | undefined
   ) {
     const conn = this.#conn;
 
-    trace(`Initializing with caller`, caller);
-    const schemaGen = await schemaGenerator(caller);
+    trace(`Initializing with caller`, this.#caller);
 
     // Ensure service rules tree
     await fillTree(conn, serviceRulesTree, this.path);
@@ -237,8 +248,9 @@ export class RulesWorker<
 
       // TODO: Hacky magic
       if (clazz) {
-        // @ts-ignore
-        action.params = schemaGen?.getSchemaForSymbol(clazz.name);
+        action.params = (await this.schemaGen)?.getSchemaForSymbol(
+          clazz.name
+        ) as any;
       }
 
       // Register action in OADA
@@ -290,8 +302,9 @@ export class RulesWorker<
 
       // TODO: Hacky magic
       if (clazz) {
-        // @ts-ignore
-        condition.params = schemaGen?.getSchemaForSymbol(clazz.name);
+        condition.params = (await this.schemaGen)?.getSchemaForSymbol(
+          clazz.name
+        ) as any;
       }
 
       // Register action in OADA
