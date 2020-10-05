@@ -143,8 +143,8 @@ test('it should handle schema inputs', async (t) => {
       },
     },
     pointers: {
-      '/properties/a/const': false,
-      '/properties/b/minimum': false,
+      '/properties/a/const': { name: 'a', iskey: false },
+      '/properties/b/minimum': { name: 'b', iskey: false },
     },
     schema: {
       type: 'object',

@@ -60,6 +60,16 @@ export function SchemaInput(name: string) {
   return Symbol(name);
 }
 /**
+ * Description of a path into a JSON Schema where an input should be applied.
+ *
+ * @todo update @oada/types for this
+ */
+export interface InputPath {
+  path: string[];
+  name: string;
+  iskey: boolean;
+}
+/**
  * Processes a schema with `SchemaInput`s into form for Rules Engine.
  *
  * @see SchemaInput
@@ -67,34 +77,45 @@ export function SchemaInput(name: string) {
  */
 function processSchema(
   inschema: InputSchema
-): { paths: { path: string[]; iskey: boolean }[]; schema: Schema } {
-  const paths: { path: string[]; iskey: boolean }[] = [];
+): {
+  paths: InputPath[];
+  schema: object | any[];
+} {
+  const paths: InputPath[] = [];
 
   const keys = Object.getOwnPropertyNames(inschema);
   const inputKeys = Object.getOwnPropertySymbols(inschema);
 
   const schema: { [key: string]: any } = {};
   for (const key of inputKeys) {
-    paths.push({ path: [key.toString()], iskey: true });
+    paths.push({ path: [key.toString()], name: key.description!, iskey: true });
   }
   for (const key of [...keys, ...inputKeys]) {
     const val = (inschema as any)[key];
     if (typeof val === 'object') {
       const { schema: sschema, paths: ppaths } = processSchema(val);
 
-      for (const { path, iskey } of ppaths) {
-        paths.push({ path: [key.toString(), ...path], iskey });
+      for (const { path, name, iskey } of ppaths) {
+        paths.push({ path: [key.toString(), ...path], name, iskey });
       }
       schema[key.toString()] = sschema;
     } else {
       if (typeof val === 'symbol') {
-        paths.push({ path: [key.toString()], iskey: false });
+        paths.push({
+          path: [key.toString()],
+          name: val.description!,
+          iskey: false,
+        });
       }
       schema[key.toString()] = val.toString();
     }
   }
 
-  return { schema, paths };
+  if (Array.isArray(inschema)) {
+    return { schema: Array.from(schema as ArrayLike<any>), paths };
+  } else {
+    return { schema, paths };
+  }
 }
 /**
  * Render a Schema with input to the format for Rules engine
@@ -105,9 +126,9 @@ function processSchema(
 export function renderSchema(inschema: InputSchema) {
   const { paths, schema } = processSchema(inschema);
 
-  const pointers: Record<string, boolean> = {};
-  for (const { path, iskey } of paths) {
-    pointers[pointer.compile(path)] = iskey;
+  const pointers: Record<string, Omit<InputPath, 'path'>> = {};
+  for (const { path, name, iskey } of paths) {
+    pointers[pointer.compile(path)] = { name, iskey };
   }
 
   return { pointers, schema };

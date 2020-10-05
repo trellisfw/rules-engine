@@ -49,7 +49,12 @@ test('it should render schema with inputs', (t) => {
     // @ts-ignore
     type: SchemaInput('type'),
     properties: {
-      a: {},
+      a: {
+        enum: [
+          // @ts-ignore
+          SchemaInput('a'),
+        ],
+      },
       [SchemaInput('prop')]: { type: 'integer' },
     },
   };
@@ -60,12 +65,13 @@ test('it should render schema with inputs', (t) => {
     // @ts-ignore
     type: 'Symbol(type)',
     properties: {
-      'a': {},
+      'a': { enum: ['Symbol(a)'] },
       'Symbol(prop)': { type: 'integer' },
     },
   });
   t.deepEqual(pointers, {
-    '/type': false,
-    '/properties/Symbol(prop)': true,
+    '/type': { name: 'type', iskey: false },
+    '/properties/a/enum/0': { name: 'a', iskey: false },
+    '/properties/Symbol(prop)': { name: 'prop', iskey: true },
   });
 });
