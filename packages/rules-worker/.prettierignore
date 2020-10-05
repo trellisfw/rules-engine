@@ -1,5 +1,7 @@
 # Ignore compiled TS output
 lib
 
+LICENSE
+
 yarn.lock
 tags*
