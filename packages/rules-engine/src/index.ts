@@ -88,7 +88,7 @@ const serviceRulesTree = <const>{
       '*': {
         _type: 'application/vnd.oada.service.1+json',
         _rev: 0,
-        rules: rulesTree.bookmarks,
+        rules: rulesTree.bookmarks.rules,
       },
     },
   },
