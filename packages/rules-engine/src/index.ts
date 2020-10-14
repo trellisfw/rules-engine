@@ -164,11 +164,13 @@ export class RulesEngine {
     for (const service of services) {
       // TODO: Fix POSTing a link with client?
       await conn.put({
-        path: `/bookmarks/services/${service}/rules/configured/${uuid}`,
+        path: `/bookmarks/services/${service}/rules/configured`,
         tree: serviceRulesTree,
         data: {
-          _id: headers['content-location'].substring(1),
-          _rev: 0,
+          [uuid.toString()]: {
+            _id: headers['content-location'].substring(1),
+            _rev: 0,
+          },
         },
       });
     }
