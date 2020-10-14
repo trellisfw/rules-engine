@@ -99,7 +99,7 @@ const serviceRulesTree = <const>{
  * Values to assign to parameters
  */
 interface Options {
-  options: Work['options'];
+  options?: Work['options'];
 }
 interface ActionInstance extends Action, Options {}
 interface ConditionInstance extends Condition, Options {}
@@ -150,8 +150,9 @@ export class RulesEngine {
     ];
     // Register rule in OADA
     // TODO: Link rule to actions and conditions instead of embedding them?
-    const { headers } = await conn.post({
-      path: '/bookmarks/rules/configured',
+    const uuid = (await KSUID.random()).string;
+    const { headers } = await conn.put({
+      path: `/bookmarks/rules/configured/${uuid}`,
       tree: rulesTree,
       data: {
         services,
@@ -160,7 +161,6 @@ export class RulesEngine {
       } as any,
     });
     // List rule under the services?
-    const uuid = await KSUID.random();
     for (const service of services) {
       // TODO: Fix POSTing a link with client?
       await conn.put({
