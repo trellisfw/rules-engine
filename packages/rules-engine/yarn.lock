@@ -437,6 +437,13 @@ ksuid@^1.2.0:
     base-convert-int-array "^1.0.1"
     string.prototype.padstart "^3.0.0"
 
+ksuid@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/ksuid/-/ksuid-2.0.0.tgz#83618ce67b235bb5f41c04cb914a2605e1ffca5a"
+  integrity sha512-BM5UU56FhzqQN6v83X8JSKWktl0gAYRovV0DnO/mXpuOs/SFMTPP7fr7ViNtzpg3iV4pnk/6pChuLhOkKBZ59A==
+  dependencies:
+    base-convert-int-array "^1.0.1"
+
 lodash.omit@^4.5.0:
   version "4.5.0"
   resolved "https://registry.yarnpkg.com/lodash.omit/-/lodash.omit-4.5.0.tgz#6eb19ae5a1ee1dd9df0b969e66ce0b7fa30b5e60"

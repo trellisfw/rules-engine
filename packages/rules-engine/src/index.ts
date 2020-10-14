@@ -2,6 +2,7 @@ import type { JSONSchema8 as Schema } from 'jsonschema8';
 import { is } from 'type-is';
 import cloneDeep from 'clone-deep';
 import pointer from 'json-pointer';
+import KSUID from 'ksuid';
 
 import type Action from '@oada/types/oada/rules/action';
 /**
@@ -159,9 +160,11 @@ export class RulesEngine {
       } as any,
     });
     // List rule under the services?
+    const uuid = await KSUID.random();
     for (const service of services) {
-      await conn.post({
-        path: `/bookmarks/services/${service}/rules/configured`,
+      // TODO: Fix POSTing a link with client?
+      await conn.put({
+        path: `/bookmarks/services/${service}/rules/configured/${uuid}`,
         tree: serviceRulesTree,
         data: {
           _id: headers['content-location'].substring(1),
