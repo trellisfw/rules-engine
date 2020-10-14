@@ -1,5 +1,5 @@
 {
-  "name": "@oada/rules-engine",
+  "name": "@trellisfw/rules-engine",
   "version": "1.0.0",
   "main": "lib/index.js",
   "author": "Alex Layton <alex@layton.in>",
