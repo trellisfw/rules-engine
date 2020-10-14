@@ -139,16 +139,36 @@ export class RulesEngine {
     // Compile rule
     const work = compile(rule);
 
+    // Find all services involved
+    const services = [
+      ...new Set(
+        [...rule.actions, ...rule.conditions]
+          .map((x) => x.service)
+          .filter((x) => !!x) as string[]
+      ),
+    ];
     // Register rule in OADA
     // TODO: Link rule to actions and conditions instead of embedding them?
     const { headers } = await conn.post({
       path: '/bookmarks/rules/configured',
       tree: rulesTree,
       data: {
+        services,
         enabled: true,
         ...rule,
       } as any,
     });
+    // List rule under the services?
+    for (const service of services) {
+      await conn.post({
+        path: `/bookmarks/services/${service}/rules/configured`,
+        tree: serviceRulesTree,
+        data: {
+          _id: headers['content-location'].substring(1),
+          _rev: 0,
+        },
+      });
+    }
 
     // Register the work in OADA
     for (const piece of work) {
