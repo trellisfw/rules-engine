@@ -2,6 +2,8 @@ import Bluebird from 'bluebird';
 import debug from 'debug';
 import getCallerFile from 'get-caller-file';
 
+import type { UiSchema } from '@rjsf/core';
+
 import type Action from '@oada/types/oada/rules/action';
 import type Condition from '@oada/types/oada/rules/condition';
 import type Work from '@oada/types/oada/rules/compiled';
@@ -11,7 +13,7 @@ import { ListWatch, Options as WatchOptions } from '@oada/list-lib';
 import { fillTree, rulesTree, serviceRulesTree } from './trees';
 import { renderSchema, schemaGenerator } from './schemaGenerator';
 import { WorkRunner } from './WorkRunner';
-import { JSONSchema8 as Schema } from 'jsonschema8';
+import type { JSONSchema8 as Schema } from 'jsonschema8';
 import { JsonSchemaGenerator } from 'typescript-json-schema';
 
 const info = debug('rules-worker:info');
@@ -70,6 +72,8 @@ export interface ActionImplementor<Service extends string, Params = never>
    * @see params
    */
   class?: Params extends never ? never : { new (): Params };
+  // Make TS smarter about uischema?
+  uischema?: { [K in keyof Params]?: UiSchema };
   /**
    * A callback for code to implement this action
    * @todo Better types parameters?
@@ -108,6 +112,8 @@ export interface ConditionImplementor<Service extends string, Params = never>
    * @see params
    */
   class?: Params extends never ? never : { new (): Params };
+  // Make TS smarter about uischema?
+  uischema?: { [K in keyof Params]?: UiSchema };
   /**
    * A JSON Schema to implement this condition.
    *
