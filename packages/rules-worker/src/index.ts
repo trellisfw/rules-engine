@@ -2,7 +2,7 @@ import Bluebird from 'bluebird';
 import debug from 'debug';
 import getCallerFile from 'get-caller-file';
 
-import type { UiSchema } from '@rjsf/core';
+//import type { UiSchema } from '@rjsf/core';
 
 import type Action from '@oada/types/oada/rules/action';
 import type Condition from '@oada/types/oada/rules/condition';
@@ -15,6 +15,11 @@ import { renderSchema, schemaGenerator } from './schemaGenerator';
 import { WorkRunner } from './WorkRunner';
 import type { JSONSchema8 as Schema } from 'jsonschema8';
 import { JsonSchemaGenerator } from 'typescript-json-schema';
+
+/**
+ * @todo Figure out how to fix rjsf type?
+ */
+type UiSchema = any;
 
 const info = debug('rules-worker:info');
 const trace = debug('rules-worker:trace');
