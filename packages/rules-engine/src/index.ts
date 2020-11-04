@@ -297,6 +297,10 @@ export function compile(
 
     schema.allOf!.push(sschema as Schema);
   }
+  // Handle no conditions?
+  if (schema.allOf?.length === 0) {
+    delete schema.allOf;
+  }
 
   const [{ name, service, options }] = actions;
   return [
