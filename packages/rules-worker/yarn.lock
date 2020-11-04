@@ -139,10 +139,10 @@
     lodash.omit "^4.5.0"
     typescript "^4.0.3"
 
-"@oada/types@^1.2.0-beta.9":
-  version "1.2.0-beta.9"
-  resolved "https://registry.yarnpkg.com/@oada/types/-/types-1.2.0-beta.9.tgz#6c6fb5fe7bca4ad33ae58357a29829c9def759c7"
-  integrity sha512-1y8hXdOhdvJFQg9c0aLg4WXkT2klyqXdl4R5wAWOEWVH1RWJ1za770RA1jBEybSnUyJmJSksZO6VXmhPuKw61Q==
+"@oada/types@^1.2.0-beta.10":
+  version "1.2.0-beta.10"
+  resolved "https://registry.yarnpkg.com/@oada/types/-/types-1.2.0-beta.10.tgz#e156a318b63ec68baa7a0c783dc630326e0de187"
+  integrity sha512-M2rhPv8Lntvsy0kxYVT5UXbE9Z6oKH7YEQ7r5pSzdKGNbIQRh+W20WdJAhHf3b3DIzZ5YQzKefQ7N5qy75EsJA==
   dependencies:
     "@types/json-schema-merge-allof" "^0.6.0"
     "@types/lodash.omit" "^4.5.6"
