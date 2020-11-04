@@ -118,18 +118,6 @@
     jsonschema8 "^1.1.0"
     object-assign-deep "^0.4.0"
 
-"@oada/types@1.2.0-beta.8":
-  version "1.2.0-beta.8"
-  resolved "https://registry.yarnpkg.com/@oada/types/-/types-1.2.0-beta.8.tgz#e1f9b2e2476b9ed82dfffef0858880ddfa93c043"
-  integrity sha512-aEPoLel2sVQ7satjd47GT666rnEkmRCIMRojFf7KGgfaMIx3BEba/Ono7gcPjZwz8ZxbMP0707yNBi/k++Wypg==
-  dependencies:
-    "@types/json-schema-merge-allof" "^0.6.0"
-    "@types/lodash.omit" "^4.5.6"
-    ajv "^6.12.2"
-    json-schema-merge-allof "^0.7.0"
-    lodash.omit "^4.5.0"
-    typescript "^4.0.3"
-
 "@oada/types@^1.0.6":
   version "1.0.10"
   resolved "https://registry.yarnpkg.com/@oada/types/-/types-1.0.10.tgz#f12f2a01e52c1d7a2d9a7662ad9c426dff6bb91f"
@@ -143,6 +131,18 @@
   version "1.1.1-beta.77"
   resolved "https://registry.yarnpkg.com/@oada/types/-/types-1.1.1-beta.77.tgz#51178c3f99a381ab6c802ce6dc96c198571de458"
   integrity sha512-UI/XeoZTCCyLTBb/t/pNmohj+VgSow7JgRSA6Y9hBX5EO8ANy34xcJywWlytChUDiTnbK3WXUSr+yfGLyYl5gg==
+  dependencies:
+    "@types/json-schema-merge-allof" "^0.6.0"
+    "@types/lodash.omit" "^4.5.6"
+    ajv "^6.12.2"
+    json-schema-merge-allof "^0.7.0"
+    lodash.omit "^4.5.0"
+    typescript "^4.0.3"
+
+"@oada/types@^1.2.0-beta.9":
+  version "1.2.0-beta.9"
+  resolved "https://registry.yarnpkg.com/@oada/types/-/types-1.2.0-beta.9.tgz#6c6fb5fe7bca4ad33ae58357a29829c9def759c7"
+  integrity sha512-1y8hXdOhdvJFQg9c0aLg4WXkT2klyqXdl4R5wAWOEWVH1RWJ1za770RA1jBEybSnUyJmJSksZO6VXmhPuKw61Q==
   dependencies:
     "@types/json-schema-merge-allof" "^0.6.0"
     "@types/lodash.omit" "^4.5.6"
