@@ -242,18 +242,7 @@ export class RulesWorker<
     // Ensure global rules tree
     await fillTree(conn, rulesTree, GLOBAL_ROOT);
 
-    // Setup watch for receving work
-    this.#workWatch = new ListWatch({
-      name: this.name,
-      path: `${this.path}/${WORK_PATH}`,
-      tree: serviceRulesTree,
-      conn,
-      // Reload all our work at startup
-      resume: false,
-      // TODO: Handle deleting work
-      onItem: this.addWork.bind(this),
-    });
-
+    // Process actions of this service
     for (const { name, class: clazz, callback, ...rest } of actions || []) {
       const action: Action = { name, ...rest };
 
@@ -285,6 +274,7 @@ export class RulesWorker<
       // Keep the callback for later
       this.actions.set(name, callback);
     }
+    // Process conditions of this service
     for (const {
       name,
       schema: inschema,
@@ -340,6 +330,18 @@ export class RulesWorker<
         this.conditions.set(name, callback);
       }
     }
+
+    // Setup watch for receving work
+    this.#workWatch = new ListWatch({
+      name: this.name,
+      path: `${this.path}/${WORK_PATH}`,
+      tree: serviceRulesTree,
+      conn,
+      // Reload all our work at startup
+      resume: false,
+      // TODO: Handle deleting work
+      onItem: this.addWork.bind(this),
+    });
   }
 
   /**

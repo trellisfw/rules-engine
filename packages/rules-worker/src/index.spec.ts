@@ -158,3 +158,6 @@ test('it should handle schema inputs', async (t) => {
 });
 
 test.todo('it should add work from rules engine');
+
+// Had an error with work trying to run before processing actions/conditions
+test.todo('it should handle pre-existing work from rules engine');
