@@ -1,6 +1,6 @@
 {
-  "name": "@oada/rules-worker",
   "version": "1.1.0",
+  "name": "@trellisfw/rules-worker",
   "main": "lib/index.js",
   "author": "Alex Layton <alex@layton.in>",
   "license": "MIT",
@@ -45,7 +45,7 @@
   },
   "dependencies": {
     "@oada/list-lib": "^1.0.1",
-    "@oada/types": "^1.2.0-beta.5",
+    "@oada/types": "^1.2.0-beta.8",
     "@rjsf/core": "^2.4.0",
     "ajv": "^6.12.4",
     "bluebird": "^3.7.2",

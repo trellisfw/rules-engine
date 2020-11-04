@@ -118,6 +118,18 @@
     jsonschema8 "^1.1.0"
     object-assign-deep "^0.4.0"
 
+"@oada/types@1.2.0-beta.8":
+  version "1.2.0-beta.8"
+  resolved "https://registry.yarnpkg.com/@oada/types/-/types-1.2.0-beta.8.tgz#e1f9b2e2476b9ed82dfffef0858880ddfa93c043"
+  integrity sha512-aEPoLel2sVQ7satjd47GT666rnEkmRCIMRojFf7KGgfaMIx3BEba/Ono7gcPjZwz8ZxbMP0707yNBi/k++Wypg==
+  dependencies:
+    "@types/json-schema-merge-allof" "^0.6.0"
+    "@types/lodash.omit" "^4.5.6"
+    ajv "^6.12.2"
+    json-schema-merge-allof "^0.7.0"
+    lodash.omit "^4.5.0"
+    typescript "^4.0.3"
+
 "@oada/types@^1.0.6":
   version "1.0.10"
   resolved "https://registry.yarnpkg.com/@oada/types/-/types-1.0.10.tgz#f12f2a01e52c1d7a2d9a7662ad9c426dff6bb91f"
@@ -131,18 +143,6 @@
   version "1.1.1-beta.77"
   resolved "https://registry.yarnpkg.com/@oada/types/-/types-1.1.1-beta.77.tgz#51178c3f99a381ab6c802ce6dc96c198571de458"
   integrity sha512-UI/XeoZTCCyLTBb/t/pNmohj+VgSow7JgRSA6Y9hBX5EO8ANy34xcJywWlytChUDiTnbK3WXUSr+yfGLyYl5gg==
-  dependencies:
-    "@types/json-schema-merge-allof" "^0.6.0"
-    "@types/lodash.omit" "^4.5.6"
-    ajv "^6.12.2"
-    json-schema-merge-allof "^0.7.0"
-    lodash.omit "^4.5.0"
-    typescript "^4.0.3"
-
-"@oada/types@^1.2.0-beta.5":
-  version "1.2.0-beta.7"
-  resolved "https://registry.yarnpkg.com/@oada/types/-/types-1.2.0-beta.7.tgz#a2b8076b0da174a88a7e247a2a962cf94ca86ed5"
-  integrity sha512-yYDdqw1a+fFx9k3aQY5gRtv7zUMyf62I13+2mNKaYtpRod2GRxr037sPGijFh2MzYa0IgxmkEALVZQgpl3Kj1g==
   dependencies:
     "@types/json-schema-merge-allof" "^0.6.0"
     "@types/lodash.omit" "^4.5.6"
@@ -1332,9 +1332,9 @@ is-ci@^2.0.0:
     ci-info "^2.0.0"
 
 is-core-module@^2.0.0:
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/is-core-module/-/is-core-module-2.0.0.tgz#58531b70aed1db7c0e8d4eb1a0a2d1ddd64bd12d"
-  integrity sha512-jq1AH6C8MuteOoBPwkxHafmByhL9j5q4OaPGdbuD+ZtQJVzH+i6E3BJDQcBA09k57i2Hh2yQbEG8yObZ0jdlWw==
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/is-core-module/-/is-core-module-2.1.0.tgz#a4cc031d9b1aca63eecbd18a650e13cb4eeab946"
+  integrity sha512-YcV7BgVMRFRua2FqQzKtTDMz8iCuLEyGKjr70q8Zm1yy2qKcurbFEd79PAdHV77oL3NrAaOVQIbMmiHQCHB7ZA==
   dependencies:
     has "^1.0.3"
 
