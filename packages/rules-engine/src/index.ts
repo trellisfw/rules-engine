@@ -10,6 +10,7 @@ import type Action from '@oada/types/oada/rules/action';
  */
 import type Condition from '@oada/types/oada/rules/condition';
 import type Work from '@oada/types/oada/rules/compiled';
+import type Configured from '@oada/types/oada/rules/configured';
 
 import type { OADAClient } from '@oada/client';
 
@@ -148,17 +149,44 @@ export class RulesEngine {
           .filter((x) => !!x) as string[]
       ),
     ];
+
+    // Create "configured" rule resource
+    const configured: Configured = {
+      services,
+      enabled: true,
+      type: rule.type,
+      path: rule.path,
+      actions: rule.actions.reduce(
+        (out, { _id, _rev, name, service }) => ({
+          ...out,
+          // Link to action resource
+          [`${service}-${name}`]: {
+            _id,
+            _rev,
+          },
+        }),
+        {}
+      ),
+      conditions: [...rule.conditions].reduce(
+        (out, { _id, _rev, name, service }) => ({
+          ...out,
+          // Link to condition resource
+          [`${service}-${name}`]: {
+            _id,
+            _rev,
+          },
+        }),
+        {}
+      ),
+    };
+
     // Register rule in OADA
     // TODO: Link rule to actions and conditions instead of embedding them?
     const uuid = (await KSUID.random()).string;
     const { headers } = await conn.put({
       path: `/bookmarks/rules/configured/${uuid}`,
       tree: rulesTree,
-      data: {
-        services,
-        enabled: true,
-        ...rule,
-      } as any,
+      data: configured as any,
     });
     // List rule under the services?
     for (const service of services) {
