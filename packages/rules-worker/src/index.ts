@@ -1,3 +1,5 @@
+import { join } from 'path';
+
 import Bluebird from 'bluebird';
 import debug from 'debug';
 import getCallerFile from 'get-caller-file';
@@ -255,7 +257,7 @@ export class RulesWorker<
 
       // Register action in OADA
       const { headers } = await conn.put({
-        path: `${this.path}/${ACTIONS_PATH}/${name}`,
+        path: join(this.path, ACTIONS_PATH, name),
         tree: serviceRulesTree,
         data: action as any,
       });
@@ -309,7 +311,7 @@ export class RulesWorker<
 
       // Register action in OADA
       const { headers } = await conn.put({
-        path: `${this.path}/${CONDITIONS_PATH}/${name}`,
+        path: join(this.path, CONDITIONS_PATH, name),
         tree: serviceRulesTree,
         data: condition as any,
       });
@@ -334,7 +336,7 @@ export class RulesWorker<
     // Setup watch for receving work
     this.#workWatch = new ListWatch({
       name: this.name,
-      path: `${this.path}/${WORK_PATH}`,
+      path: join(this.path, WORK_PATH),
       tree: serviceRulesTree,
       conn,
       // Reload all our work at startup
@@ -365,7 +367,7 @@ export class RulesWorker<
 
       const workRunner = new WorkRunner(
         conn,
-        `${name}-${action}`,
+        `${name}-${work.action}`,
         work,
         action
       );
