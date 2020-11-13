@@ -109,8 +109,9 @@ interface ConditionInstance extends Condition, Options {}
  * A rule to be "compiled"
  */
 interface RuleInputs {
-  type: string;
-  path: string;
+  type: Configured['type'];
+  path: Configured['path'];
+  on?: Configured['on'];
   // Represented as list in OADA?
   conditions: Set<Readonly<ConditionInstance>>;
   // Represented as list in OADA?
@@ -238,7 +239,16 @@ export class RulesEngine {
  * @returns An array of work that implement the rule
  */
 export function compile(
-  { path, type, conditions, actions }: RuleInputs,
+  {
+    path,
+    type,
+    /**
+     * @default 'new'
+     */
+    on = 'new',
+    conditions,
+    actions,
+  }: RuleInputs,
   /**
    * @default false
    */
@@ -310,7 +320,14 @@ export function compile(
       action: name,
       options,
       path,
-      schema,
-    } as Work,
+      on,
+      schema: schema as Work['schema'],
+      // TODO: better way to handle this...
+      rule: {
+        // Empty link for now?
+        _id: '',
+        _rev: '',
+      },
+    },
   ];
 }
