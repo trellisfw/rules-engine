@@ -367,7 +367,8 @@ export class RulesWorker<
 
       const workRunner = new WorkRunner(
         conn,
-        `${name}-${work.action}`,
+        // Make name unique
+        `${name}-work-${id}`,
         work,
         action
       );

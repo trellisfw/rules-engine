@@ -12,6 +12,10 @@ const info = debug('rules-worker:info');
 
 const ajv = new Ajv();
 
+function assertNever(val: never) {
+  throw new Error(`Unsupported value ${val}`);
+}
+
 /**
  * Do magic with type inference stuff.
  */
@@ -99,7 +103,7 @@ export class WorkRunner<S extends string, P extends {}> {
     const {
       conn,
       name,
-      work: { path, options },
+      work: { path, on, options },
       validator,
       callback,
     } = this;
@@ -115,6 +119,20 @@ export class WorkRunner<S extends string, P extends {}> {
       info(`Work ${name} set to ${enabled ? 'enabled' : 'disabled'}`);
       this._enabled = enabled;
       if (enabled) {
+        // Determine which items to handle
+        let listEvent: 'onAddItem' | 'onItem';
+        switch (on) {
+          case 'new':
+            // Listen for new list items
+            listEvent = <const>'onAddItem';
+            break;
+          case 'change':
+            // Listen for any change to list items
+            listEvent = <const>'onItem';
+            break;
+          default:
+            assertNever(on);
+        }
         // Register watch for this work
         this.workWatch = new ListWatch({
           // Make sure each work has unique name?
@@ -129,8 +147,8 @@ export class WorkRunner<S extends string, P extends {}> {
               throw validator.errors;
             }
           },
-          // TODO: Handle changes to items?
-          onAddItem: (item) => callback(item, options as Literal<P>),
+          [listEvent!]: (item: unknown) =>
+            callback(item, options as Literal<P>),
         });
       } else {
         await this.workWatch!.stop();

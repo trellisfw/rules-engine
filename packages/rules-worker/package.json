@@ -44,8 +44,8 @@
     "typescript": "^4.1.0-beta"
   },
   "dependencies": {
-    "@oada/list-lib": "^1.0.1",
-    "@oada/types": "^1.2.0-beta.10",
+    "@oada/list-lib": "^2.0.2",
+    "@oada/types": "^1.2.0-beta.12",
     "@rjsf/core": "^2.4.0",
     "ajv": "^6.12.4",
     "bluebird": "^3.7.2",
