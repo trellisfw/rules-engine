@@ -1,0 +1,8 @@
+{
+  "name": "Rules Engine",
+  "tsconfig": "./tsconfig.build.json",
+  "external-modulemap": ".*packages/([^/]+)/.*",
+  "excludePrivate": true,
+  "stripInternal": true,
+  "out": "docs"
+}

@@ -14,5 +14,5 @@
     "declarationMap": true,
     "stripInternal": true
   },
-  "exclude": ["lib"]
+  "exclude": ["packages/*/lib"]
 }

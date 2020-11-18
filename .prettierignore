@@ -1,4 +1,7 @@
 LICENSE
 
+lib
+docs
+
 yarn.lock
 tags*

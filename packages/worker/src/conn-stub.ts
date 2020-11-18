@@ -1,3 +1,7 @@
+/**
+ * @internal
+ */
+
 import sinon from 'sinon';
 
 import { OADAClient } from '@oada/client';

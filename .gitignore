@@ -1,5 +1,6 @@
 node_modules
 dist
+docs
 results
 .nyc_output
 *.tsbuildinfo
