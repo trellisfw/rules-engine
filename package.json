@@ -1,0 +1,19 @@
+{
+  "name": "@trellisfw/rules-engine",
+  "description": "Trellis rules engine libs",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "docs": "doctoc --title '**Table of content**' README.md",
+    "clean": "lerna run clean",
+    "build": "lerna run build",
+    "pub": "lerna publish",
+    "test": "lerna run test"
+  },
+  "devDependencies": {
+    "lerna": "~3.22.0",
+    "typescript": "~4.0.0"
+  }
+}
