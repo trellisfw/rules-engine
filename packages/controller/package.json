@@ -1,5 +1,5 @@
 {
-  "name": "@trellisfw/rules-engine",
+  "name": "@trellisfw/rules-controller",
   "version": "1.0.0",
   "main": "lib/index.js",
   "author": "Alex Layton <alex@layton.in>",

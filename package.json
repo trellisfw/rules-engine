@@ -34,7 +34,7 @@
     "typescript": "^4.1.0-beta"
   },
   "dependencies": {
-    "@trellisfw/rules-engine": "file:packages/engine",
+    "@trellisfw/rules-controller": "file:packages/controller",
     "@trellisfw/rules-worker": "file:packages/worker"
   }
 }
