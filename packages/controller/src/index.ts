@@ -4,13 +4,13 @@ import cloneDeep from 'clone-deep';
 import pointer from 'json-pointer';
 import KSUID from 'ksuid';
 
-import type Action from '@oada/types/oada/rules/action';
+import type Action from '@oada/types/trellis/rules/action';
 /**
  * @todo Implement conditions besides schemas
  */
-import type Condition from '@oada/types/oada/rules/condition';
-import type Work from '@oada/types/oada/rules/compiled';
-import type Configured from '@oada/types/oada/rules/configured';
+import type Condition from '@oada/types/trellis/rules/condition';
+import type Work from '@oada/types/trellis/rules/compiled';
+import type Configured from '@oada/types/trellis/rules/configured';
 
 import type { OADAClient } from '@oada/client';
 
@@ -158,23 +158,29 @@ export class RulesEngine {
       type: rule.type,
       path: rule.path,
       actions: rule.actions.reduce(
-        (out, { _id, _rev, name, service }) => ({
+        (out, { _id, _rev, name, service, options }) => ({
           ...out,
-          // Link to action resource
           [`${service}-${name}`]: {
-            _id,
-            _rev,
+            // Link to action resource
+            action: {
+              _id,
+              _rev,
+            },
+            options,
           },
         }),
         {}
       ),
       conditions: [...rule.conditions].reduce(
-        (out, { _id, _rev, name, service }) => ({
+        (out, { _id, _rev, name, service, options }) => ({
           ...out,
-          // Link to condition resource
           [`${service}-${name}`]: {
-            _id,
-            _rev,
+            // Link to condition resource
+            condition: {
+              _id,
+              _rev,
+            },
+            options,
           },
         }),
         {}

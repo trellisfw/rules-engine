@@ -6,9 +6,9 @@ import getCallerFile from 'get-caller-file';
 
 //import type { UiSchema } from '@rjsf/core';
 
-import type Action from '@oada/types/oada/rules/action';
-import type Condition from '@oada/types/oada/rules/condition';
-import type Work from '@oada/types/oada/rules/compiled';
+import type Action from '@oada/types/trellis/rules/action';
+import type Condition from '@oada/types/trellis/rules/condition';
+import type Work from '@oada/types/trellis/rules/compiled';
 
 import { ListWatch, Options as WatchOptions } from '@oada/list-lib';
 

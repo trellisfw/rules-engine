@@ -912,10 +912,10 @@
     lodash.omit "^4.5.0"
     typescript "^4.0.3"
 
-"@oada/types@^1.2.0-beta.12":
-  version "1.2.0-beta.12"
-  resolved "https://registry.yarnpkg.com/@oada/types/-/types-1.2.0-beta.12.tgz#e8327db7d86335201c9ea9b89ececa4858ac3771"
-  integrity sha512-MXT9b4qzwf8WX/r62LIAt6IvGfxkpl0Qbi/QARrsD+D6jtC2bLmUdNTdzJQ9aLH7qYfnFM0Lb7UfCeY3pEspHw==
+"@oada/types@^1.2.0-beta.14":
+  version "1.2.0-beta.14"
+  resolved "https://registry.yarnpkg.com/@oada/types/-/types-1.2.0-beta.14.tgz#36517213ba5fb92c8d6af0844c0651618c62800e"
+  integrity sha512-Yql220Vlnu8iaq+MDdOA0blQWVM4b/Ocm1LcfhnAMfQO/ailAsC9t0ELtU80hzoWRmPq4zbdaWGMBNA64tPjIg==
   dependencies:
     "@types/json-schema-merge-allof" "^0.6.0"
     "@types/lodash.omit" "^4.5.6"
@@ -1098,11 +1098,11 @@
   dependencies:
     defer-to-connect "^1.0.1"
 
-"@trellisfw/rules-engine@file:packages/engine":
+"@trellisfw/rules-controller@file:packages/controller":
   version "1.0.0"
   dependencies:
     "@oada/client" "^1.0.4"
-    "@oada/types" "^1.2.0-beta.12"
+    "@oada/types" "^1.2.0-beta.14"
     clone-deep "^4.0.1"
     debug "^4.1.1"
     json-pointer "^0.6.1"
@@ -1114,7 +1114,7 @@
   version "1.1.0"
   dependencies:
     "@oada/list-lib" "^2.0.2"
-    "@oada/types" "^1.2.0-beta.12"
+    "@oada/types" "^1.2.0-beta.14"
     "@rjsf/core" "^2.4.0"
     ajv "^6.12.4"
     bluebird "^3.7.2"
