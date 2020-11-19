@@ -16,7 +16,7 @@
     "directory": "packages/worker"
   },
   "bugs": {
-    "url": "https://github.com/trellisfw/rules-engine/lables/rules-worker"
+    "url": "https://github.com/trellisfw/rules-engine/labels/rules-worker"
   },
   "license": "MIT",
   "private": false,

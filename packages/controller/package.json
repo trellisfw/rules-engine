@@ -15,7 +15,7 @@
     "directory": "packages/controller"
   },
   "bugs": {
-    "url": "https://github.com/trellisfw/rules-engine/lables/rules-controller"
+    "url": "https://github.com/trellisfw/rules-engine/labels/rules-controller"
   },
   "license": "MIT",
   "private": false,
