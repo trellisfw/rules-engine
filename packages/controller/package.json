@@ -1,8 +1,22 @@
 {
-  "name": "@trellisfw/rules-controller",
   "version": "1.0.0",
+  "name": "@trellisfw/rules-controller",
+  "description": "Library for configuring/controlling Trellis Rules Engine",
+  "keywords": [
+    "oada",
+    "trellis"
+  ],
   "main": "lib/index.js",
   "author": "Alex Layton <alex@layton.in>",
+  "homepage": "https://trellisfw.github.io/rules-engine/modules/controller",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/trellisfw/rules-engine.git",
+    "directory": "packages/controller"
+  },
+  "bugs": {
+    "url": "https://github.com/trellisfw/rules-engine/lables/rules-controller"
+  },
   "license": "MIT",
   "private": false,
   "scripts": {

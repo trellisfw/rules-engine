@@ -1,8 +1,23 @@
 {
   "version": "1.1.0",
   "name": "@trellisfw/rules-worker",
+  "description": "Worker library for exposing services to Trellis Rules Engine",
+  "keywords": [
+    "oada",
+    "trellis",
+    "microservice"
+  ],
   "main": "lib/index.js",
   "author": "Alex Layton <alex@layton.in>",
+  "homepage": "https://trellisfw.github.io/rules-engine/modules/worker",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/trellisfw/rules-engine.git",
+    "directory": "packages/worker"
+  },
+  "bugs": {
+    "url": "https://github.com/trellisfw/rules-engine/lables/rules-worker"
+  },
   "license": "MIT",
   "private": false,
   "scripts": {

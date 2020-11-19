@@ -1,4 +1,4 @@
-# OADA/rules-worker
+# @trellisfw/rules-worker
 
 Library for exposing "actions" to the OADA Rules Engine.
 For detailed constructor options, see the `Options` type in src/index.ts
@@ -178,4 +178,16 @@ new RulesWorker({
   ],
 });
 
+```
+
+## Full Docs
+
+The latest full documentation of this library is available at
+https://trellisfw.github.io/rules-engine/modules/worker
+
+Alternatively, you can run the following at the root of the monorepo
+to generate the docs:
+
+```
+yarn docs
 ```

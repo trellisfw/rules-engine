@@ -1,6 +1,7 @@
 {
   "name": "Rules Engine",
   "tsconfig": "./tsconfig.build.json",
+  "readme": "./README.md",
   "external-modulemap": ".*packages/([^/]+)/.*",
   "excludePrivate": true,
   "stripInternal": true,
