@@ -40,8 +40,6 @@
 							<label class="tsd-widget" for="tsd-filter-inherited">Inherited</label>
 							<input type="checkbox" id="tsd-filter-externals" checked />
 							<label class="tsd-widget" for="tsd-filter-externals">Externals</label>
-							<input type="checkbox" id="tsd-filter-only-exported" />
-							<label class="tsd-widget" for="tsd-filter-only-exported">Only exported</label>
 						</div>
 					</div>
 					<a href="#" class="tsd-widget menu no-caption" data-toggle="menu">Menu</a>
@@ -73,6 +71,37 @@
 					</a>
 					<p>Library for configuring and controlling rules within
 					the Trellis Rules Engine.</p>
+					<a href="#basic-usage-example" id="basic-usage-example" style="color: inherit; text-decoration: none;">
+						<h2>Basic Usage Example</h2>
+					</a>
+					<pre><code class="language-typescript"><span class="hljs-keyword">import</span> <span class="hljs-keyword">type</span> { Action, Condition } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;@oada/types&#x27;</span>;
+<span class="hljs-keyword">import</span> { connect } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;@oada/client&#x27;</span>;
+
+<span class="hljs-keyword">import</span> { RulesEngine } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;@trellisfw/rules-controller&#x27;</span>;
+
+<span class="hljs-comment">// Initialize the lib with a connection to OADA</span>
+<span class="hljs-keyword">const</span> conn = <span class="hljs-keyword">await</span> connect();
+<span class="hljs-keyword">const</span> engine = <span class="hljs-keyword">new</span> RulesEngine({ conn });
+
+<span class="hljs-comment">/**
+ * <span class="hljs-doctag">@todo </span>Add functionality for fetching actions/conditions to rules-controller
+ */</span>
+<span class="hljs-comment">// Fetch an action</span>
+<span class="hljs-keyword">const</span> { <span class="hljs-attr">data</span>: action } = <span class="hljs-keyword">await</span> conn.get({
+  <span class="hljs-attr">path</span>: <span class="hljs-string">&#x27;/bookmarks/services/foo/rules/actions/actionBar&#x27;</span>,
+});
+<span class="hljs-comment">// Fetch a condition</span>
+<span class="hljs-keyword">const</span> { <span class="hljs-attr">data</span>: conditon } = <span class="hljs-keyword">await</span> conn.get({
+  <span class="hljs-attr">path</span>: <span class="hljs-string">&#x27;/bookmarks/services/foo/rules/conditions/conditionBaz&#x27;</span>,
+});
+
+<span class="hljs-comment">// Register a rule that runs `action` when `condition`</span>
+engine.register({
+  <span class="hljs-attr">type</span>: <span class="hljs-string">&#x27;application/vnd.foo.bar+json&#x27;</span>,
+  <span class="hljs-attr">path</span>: <span class="hljs-string">&#x27;/bookmarks/foo&#x27;</span>,
+  <span class="hljs-attr">conditions</span>: <span class="hljs-keyword">new</span> <span class="hljs-built_in">Set</span>([conditon <span class="hljs-keyword">as</span> Condition]),
+  <span class="hljs-attr">actions</span>: [action <span class="hljs-keyword">as</span> Action],
+});</code></pre>
 					<a href="#full-docs" id="full-docs" style="color: inherit; text-decoration: none;">
 						<h2>Full Docs</h2>
 					</a>
@@ -88,32 +117,16 @@
 				<section class="tsd-panel tsd-index-panel">
 					<div class="tsd-index-content">
 						<section class="tsd-index-section ">
-							<h3>Modules</h3>
-							<ul class="tsd-index-list">
-								<li class="tsd-kind-module tsd-parent-kind-module"><a href="controller._json_pointer_.html" class="tsd-kind-icon">&quot;json-<wbr>pointer&quot;</a></li>
-							</ul>
-						</section>
-						<section class="tsd-index-section ">
 							<h3>Classes</h3>
 							<ul class="tsd-index-list">
 								<li class="tsd-kind-class tsd-parent-kind-module"><a href="../classes/controller.rulesengine.html" class="tsd-kind-icon">Rules<wbr>Engine</a></li>
 							</ul>
 						</section>
-						<section class="tsd-index-section tsd-is-not-exported">
+						<section class="tsd-index-section ">
 							<h3>Interfaces</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-interface tsd-parent-kind-module tsd-is-not-exported"><a href="../interfaces/controller.actioninstance.html" class="tsd-kind-icon">Action<wbr>Instance</a></li>
-								<li class="tsd-kind-interface tsd-parent-kind-module tsd-is-not-exported"><a href="../interfaces/controller.conditioninstance.html" class="tsd-kind-icon">Condition<wbr>Instance</a></li>
-								<li class="tsd-kind-interface tsd-parent-kind-module tsd-is-not-exported"><a href="../interfaces/controller.engineoptions.html" class="tsd-kind-icon">Engine<wbr>Options</a></li>
-								<li class="tsd-kind-interface tsd-parent-kind-module tsd-is-not-exported"><a href="../interfaces/controller.options.html" class="tsd-kind-icon">Options</a></li>
-								<li class="tsd-kind-interface tsd-parent-kind-module tsd-is-not-exported"><a href="../interfaces/controller.ruleinputs.html" class="tsd-kind-icon">Rule<wbr>Inputs</a></li>
-							</ul>
-						</section>
-						<section class="tsd-index-section tsd-is-not-exported">
-							<h3>Variables</h3>
-							<ul class="tsd-index-list">
-								<li class="tsd-kind-variable tsd-parent-kind-module tsd-is-not-exported"><a href="controller.html#rulestree" class="tsd-kind-icon">rules<wbr>Tree</a></li>
-								<li class="tsd-kind-variable tsd-parent-kind-module tsd-is-not-exported"><a href="controller.html#servicerulestree" class="tsd-kind-icon">service<wbr>Rules<wbr>Tree</a></li>
+								<li class="tsd-kind-interface tsd-parent-kind-module"><a href="../interfaces/controller.engineoptions.html" class="tsd-kind-icon">Engine<wbr>Options</a></li>
+								<li class="tsd-kind-interface tsd-parent-kind-module"><a href="../interfaces/controller.ruleinputs.html" class="tsd-kind-icon">Rule<wbr>Inputs</a></li>
 							</ul>
 						</section>
 						<section class="tsd-index-section ">
@@ -125,314 +138,19 @@
 					</div>
 				</section>
 			</section>
-			<section class="tsd-panel-group tsd-member-group tsd-is-not-exported">
-				<h2>Variables</h2>
-				<section class="tsd-panel tsd-member tsd-kind-variable tsd-parent-kind-module tsd-is-not-exported">
-					<a name="rulestree" class="tsd-anchor"></a>
-					<h3><span class="tsd-flag ts-flagConst">Const</span> rules<wbr>Tree</h3>
-					<div class="tsd-signature tsd-kind-icon">rules<wbr>Tree<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{ </span>bookmarks<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">object</span><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol"> = &lt;const&gt;{bookmarks: {_type: &#x27;application/vnd.oada.bookmarks.1+json&#x27;,_rev: 0,rules: {_type: &#x27;application/vnd.oada.rules.1+json&#x27;,_rev: 0,actions: {&#x27;_type&#x27;: &#x27;application/vnd.oada.rules.actions.1+json&#x27;,&#x27;_rev&#x27;: 0,&#x27;*&#x27;: {_type: &#x27;application/vnd.oada.rules.action.1+json&#x27;,_rev: 0,},},conditions: {&#x27;_type&#x27;: &#x27;application/vnd.oada.rules.conditions.1+json&#x27;,&#x27;_rev&#x27;: 0,&#x27;*&#x27;: {_type: &#x27;application/vnd.oada.rules.condition.1+json&#x27;,_rev: 0,},},configured: {&#x27;_type&#x27;: &#x27;application/vnd.oada.rules.configured.1+json&#x27;,&#x27;_rev&#x27;: 0,&#x27;*&#x27;: {_type: &#x27;application/vnd.oada.rule.configured.1+json&#x27;,_rev: 0,},},compiled: {&#x27;_type&#x27;: &#x27;application/vnd.oada.rules.compiled.1+json&#x27;,&#x27;_rev&#x27;: 0,&#x27;*&#x27;: {_type: &#x27;application/vnd.oada.rule.compiled.1+json&#x27;,_rev: 0,},},},},}</span></div>
-					<aside class="tsd-sources">
-						<ul>
-							<li>Defined in <a href="https://github.com/trellisfw/rules-engine/blob/783a4bb/packages/controller/src/index.ts#L41">packages/controller/src/index.ts:41</a></li>
-						</ul>
-					</aside>
-					<div class="tsd-comment tsd-typography">
-						<div class="lead">
-							<p>Rules Tree</p>
-						</div>
-						<dl class="tsd-comment-tags">
-							<dt>todo</dt>
-							<dd><p>What should _types be?</p>
-								<p>Groups the various bits involved in the rule &quot;engine&quot;
-									/rules
-									| List of descriptions of the actions a service implements
-									/actions
-									| List of descriptions of conditions a service implements
-									/conditions
-									| List of registered rules
-									/ configured
-									| List of &quot;compiled&quot; inputs to be run by a worker
-								/compiled</p>
-							</dd>
-						</dl>
-					</div>
-					<div class="tsd-type-declaration">
-						<h4>Type declaration</h4>
-						<ul class="tsd-parameters">
-							<li class="tsd-parameter">
-								<h5>bookmarks<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">object</span></h5>
-								<ul class="tsd-parameters">
-									<li class="tsd-parameter">
-										<h5>_rev<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">0</span></h5>
-									</li>
-									<li class="tsd-parameter">
-										<h5>_type<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">"application/vnd.oada.bookmarks.1+json"</span></h5>
-									</li>
-									<li class="tsd-parameter">
-										<h5>rules<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">object</span></h5>
-										<ul class="tsd-parameters">
-											<li class="tsd-parameter">
-												<h5>_rev<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">0</span></h5>
-											</li>
-											<li class="tsd-parameter">
-												<h5>_type<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">"application/vnd.oada.rules.1+json"</span></h5>
-											</li>
-											<li class="tsd-parameter">
-												<h5>actions<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">object</span></h5>
-												<ul class="tsd-parameters">
-													<li class="tsd-parameter">
-														<h5>_rev<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">0</span></h5>
-													</li>
-													<li class="tsd-parameter">
-														<h5>_type<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">"application/vnd.oada.rules.actions.1+json"</span></h5>
-													</li>
-													<li class="tsd-parameter">
-														<h5>*<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">object</span></h5>
-														<ul class="tsd-parameters">
-															<li class="tsd-parameter">
-																<h5>_rev<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">0</span></h5>
-															</li>
-															<li class="tsd-parameter">
-																<h5>_type<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">"application/vnd.oada.rules.action.1+json"</span></h5>
-															</li>
-														</ul>
-													</li>
-												</ul>
-											</li>
-											<li class="tsd-parameter">
-												<h5>compiled<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">object</span></h5>
-												<ul class="tsd-parameters">
-													<li class="tsd-parameter">
-														<h5>_rev<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">0</span></h5>
-													</li>
-													<li class="tsd-parameter">
-														<h5>_type<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">"application/vnd.oada.rules.compiled.1+json"</span></h5>
-													</li>
-													<li class="tsd-parameter">
-														<h5>*<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">object</span></h5>
-														<ul class="tsd-parameters">
-															<li class="tsd-parameter">
-																<h5>_rev<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">0</span></h5>
-															</li>
-															<li class="tsd-parameter">
-																<h5>_type<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">"application/vnd.oada.rule.compiled.1+json"</span></h5>
-															</li>
-														</ul>
-													</li>
-												</ul>
-											</li>
-											<li class="tsd-parameter">
-												<h5>conditions<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">object</span></h5>
-												<ul class="tsd-parameters">
-													<li class="tsd-parameter">
-														<h5>_rev<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">0</span></h5>
-													</li>
-													<li class="tsd-parameter">
-														<h5>_type<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">"application/vnd.oada.rules.conditions.1+json"</span></h5>
-													</li>
-													<li class="tsd-parameter">
-														<h5>*<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">object</span></h5>
-														<ul class="tsd-parameters">
-															<li class="tsd-parameter">
-																<h5>_rev<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">0</span></h5>
-															</li>
-															<li class="tsd-parameter">
-																<h5>_type<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">"application/vnd.oada.rules.condition.1+json"</span></h5>
-															</li>
-														</ul>
-													</li>
-												</ul>
-											</li>
-											<li class="tsd-parameter">
-												<h5>configured<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">object</span></h5>
-												<ul class="tsd-parameters">
-													<li class="tsd-parameter">
-														<h5>_rev<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">0</span></h5>
-													</li>
-													<li class="tsd-parameter">
-														<h5>_type<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">"application/vnd.oada.rules.configured.1+json"</span></h5>
-													</li>
-													<li class="tsd-parameter">
-														<h5>*<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">object</span></h5>
-														<ul class="tsd-parameters">
-															<li class="tsd-parameter">
-																<h5>_rev<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">0</span></h5>
-															</li>
-															<li class="tsd-parameter">
-																<h5>_type<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">"application/vnd.oada.rule.configured.1+json"</span></h5>
-															</li>
-														</ul>
-													</li>
-												</ul>
-											</li>
-										</ul>
-									</li>
-								</ul>
-							</li>
-						</ul>
-					</div>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-variable tsd-parent-kind-module tsd-is-not-exported">
-					<a name="servicerulestree" class="tsd-anchor"></a>
-					<h3><span class="tsd-flag ts-flagConst">Const</span> service<wbr>Rules<wbr>Tree</h3>
-					<div class="tsd-signature tsd-kind-icon">service<wbr>Rules<wbr>Tree<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{ </span>bookmarks<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">object</span><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol"> = &lt;const&gt;{bookmarks: {_type: &#x27;application/vnd.oada.bookmarks.1+json&#x27;,_rev: 0,services: {&#x27;_type&#x27;: &#x27;application/vnd.oada.services.1+json&#x27;,&#x27;_rev&#x27;: 0,&#x27;*&#x27;: {_type: &#x27;application/vnd.oada.service.1+json&#x27;,_rev: 0,rules: rulesTree.bookmarks.rules,},},},}</span></div>
-					<aside class="tsd-sources">
-						<ul>
-							<li>Defined in <a href="https://github.com/trellisfw/rules-engine/blob/783a4bb/packages/controller/src/index.ts#L83">packages/controller/src/index.ts:83</a></li>
-						</ul>
-					</aside>
-					<div class="tsd-type-declaration">
-						<h4>Type declaration</h4>
-						<ul class="tsd-parameters">
-							<li class="tsd-parameter">
-								<h5>bookmarks<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">object</span></h5>
-								<ul class="tsd-parameters">
-									<li class="tsd-parameter">
-										<h5>_rev<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">0</span></h5>
-									</li>
-									<li class="tsd-parameter">
-										<h5>_type<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">"application/vnd.oada.bookmarks.1+json"</span></h5>
-									</li>
-									<li class="tsd-parameter">
-										<h5>services<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">object</span></h5>
-										<ul class="tsd-parameters">
-											<li class="tsd-parameter">
-												<h5>_rev<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">0</span></h5>
-											</li>
-											<li class="tsd-parameter">
-												<h5>_type<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">"application/vnd.oada.services.1+json"</span></h5>
-											</li>
-											<li class="tsd-parameter">
-												<h5>*<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">object</span></h5>
-												<ul class="tsd-parameters">
-													<li class="tsd-parameter">
-														<h5>_rev<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">0</span></h5>
-													</li>
-													<li class="tsd-parameter">
-														<h5>_type<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">"application/vnd.oada.service.1+json"</span></h5>
-													</li>
-													<li class="tsd-parameter">
-														<h5>rules<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">{ </span>_rev<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">0</span><span class="tsd-signature-symbol">; </span>_type<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">"application/vnd.oada.rules.1+json"</span><span class="tsd-signature-symbol">; </span>actions<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">object</span><span class="tsd-signature-symbol">; </span>compiled<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">object</span><span class="tsd-signature-symbol">; </span>conditions<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">object</span><span class="tsd-signature-symbol">; </span>configured<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">object</span><span class="tsd-signature-symbol"> }</span></h5>
-														<ul class="tsd-parameters">
-															<li class="tsd-parameter">
-																<h5>_rev<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">0</span></h5>
-															</li>
-															<li class="tsd-parameter">
-																<h5>_type<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">"application/vnd.oada.rules.1+json"</span></h5>
-															</li>
-															<li class="tsd-parameter">
-																<h5>actions<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">object</span></h5>
-																<ul class="tsd-parameters">
-																	<li class="tsd-parameter">
-																		<h5>_rev<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">0</span></h5>
-																	</li>
-																	<li class="tsd-parameter">
-																		<h5>_type<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">"application/vnd.oada.rules.actions.1+json"</span></h5>
-																	</li>
-																	<li class="tsd-parameter">
-																		<h5>*<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">object</span></h5>
-																		<ul class="tsd-parameters">
-																			<li class="tsd-parameter">
-																				<h5>_rev<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">0</span></h5>
-																			</li>
-																			<li class="tsd-parameter">
-																				<h5>_type<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">"application/vnd.oada.rules.action.1+json"</span></h5>
-																			</li>
-																		</ul>
-																	</li>
-																</ul>
-															</li>
-															<li class="tsd-parameter">
-																<h5>compiled<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">object</span></h5>
-																<ul class="tsd-parameters">
-																	<li class="tsd-parameter">
-																		<h5>_rev<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">0</span></h5>
-																	</li>
-																	<li class="tsd-parameter">
-																		<h5>_type<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">"application/vnd.oada.rules.compiled.1+json"</span></h5>
-																	</li>
-																	<li class="tsd-parameter">
-																		<h5>*<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">object</span></h5>
-																		<ul class="tsd-parameters">
-																			<li class="tsd-parameter">
-																				<h5>_rev<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">0</span></h5>
-																			</li>
-																			<li class="tsd-parameter">
-																				<h5>_type<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">"application/vnd.oada.rule.compiled.1+json"</span></h5>
-																			</li>
-																		</ul>
-																	</li>
-																</ul>
-															</li>
-															<li class="tsd-parameter">
-																<h5>conditions<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">object</span></h5>
-																<ul class="tsd-parameters">
-																	<li class="tsd-parameter">
-																		<h5>_rev<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">0</span></h5>
-																	</li>
-																	<li class="tsd-parameter">
-																		<h5>_type<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">"application/vnd.oada.rules.conditions.1+json"</span></h5>
-																	</li>
-																	<li class="tsd-parameter">
-																		<h5>*<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">object</span></h5>
-																		<ul class="tsd-parameters">
-																			<li class="tsd-parameter">
-																				<h5>_rev<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">0</span></h5>
-																			</li>
-																			<li class="tsd-parameter">
-																				<h5>_type<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">"application/vnd.oada.rules.condition.1+json"</span></h5>
-																			</li>
-																		</ul>
-																	</li>
-																</ul>
-															</li>
-															<li class="tsd-parameter">
-																<h5>configured<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">object</span></h5>
-																<ul class="tsd-parameters">
-																	<li class="tsd-parameter">
-																		<h5>_rev<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">0</span></h5>
-																	</li>
-																	<li class="tsd-parameter">
-																		<h5>_type<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">"application/vnd.oada.rules.configured.1+json"</span></h5>
-																	</li>
-																	<li class="tsd-parameter">
-																		<h5>*<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">object</span></h5>
-																		<ul class="tsd-parameters">
-																			<li class="tsd-parameter">
-																				<h5>_rev<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">0</span></h5>
-																			</li>
-																			<li class="tsd-parameter">
-																				<h5>_type<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">"application/vnd.oada.rule.configured.1+json"</span></h5>
-																			</li>
-																		</ul>
-																	</li>
-																</ul>
-															</li>
-														</ul>
-													</li>
-												</ul>
-											</li>
-										</ul>
-									</li>
-								</ul>
-							</li>
-						</ul>
-					</div>
-				</section>
-			</section>
 			<section class="tsd-panel-group tsd-member-group ">
 				<h2>Functions</h2>
 				<section class="tsd-panel tsd-member tsd-kind-function tsd-parent-kind-module">
 					<a name="compile" class="tsd-anchor"></a>
 					<h3>compile</h3>
 					<ul class="tsd-signatures tsd-kind-function tsd-parent-kind-module">
-						<li class="tsd-signature tsd-kind-icon">compile<span class="tsd-signature-symbol">(</span>__namedParameters<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">{ </span>actions<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">ReadonlyArray</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">Readonly</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/controller.actioninstance.html" class="tsd-signature-type">ActionInstance</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">; </span>conditions<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Set</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">Readonly</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/controller.conditioninstance.html" class="tsd-signature-type">ConditionInstance</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">; </span>on<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">"new"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">"change"</span><span class="tsd-signature-symbol">; </span>path<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span>type<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> }</span>, checkTypes<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Work</span><span class="tsd-signature-symbol">[]</span></li>
+						<li class="tsd-signature tsd-kind-icon">compile<span class="tsd-signature-symbol">(</span>__namedParameters<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">{ </span>actions<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">ReadonlyArray</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">Readonly</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">ActionInstance</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">; </span>conditions<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Set</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">Readonly</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">ConditionInstance</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">; </span>on<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">"new"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">"change"</span><span class="tsd-signature-symbol">; </span>path<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span>type<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> }</span>, checkTypes<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Work</span><span class="tsd-signature-symbol">[]</span></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/trellisfw/rules-engine/blob/783a4bb/packages/controller/src/index.ts#L247">packages/controller/src/index.ts:247</a></li>
+									<li>Defined in <a href="https://github.com/trellisfw/rules-engine/blob/27c48f7/packages/controller/src/index.ts#L250">packages/controller/src/index.ts:250</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -443,13 +161,13 @@
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
-									<h5>__namedParameters: <span class="tsd-signature-symbol">{ </span>actions<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">ReadonlyArray</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">Readonly</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/controller.actioninstance.html" class="tsd-signature-type">ActionInstance</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">; </span>conditions<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Set</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">Readonly</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/controller.conditioninstance.html" class="tsd-signature-type">ConditionInstance</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">; </span>on<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">"new"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">"change"</span><span class="tsd-signature-symbol">; </span>path<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span>type<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> }</span></h5>
+									<h5>__namedParameters: <span class="tsd-signature-symbol">{ </span>actions<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">ReadonlyArray</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">Readonly</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">ActionInstance</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">; </span>conditions<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Set</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">Readonly</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">ConditionInstance</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">; </span>on<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">"new"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">"change"</span><span class="tsd-signature-symbol">; </span>path<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span>type<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> }</span></h5>
 									<ul class="tsd-parameters">
 										<li class="tsd-parameter">
-											<h5>actions<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">ReadonlyArray</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">Readonly</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/controller.actioninstance.html" class="tsd-signature-type">ActionInstance</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span></h5>
+											<h5>actions<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">ReadonlyArray</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">Readonly</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">ActionInstance</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span></h5>
 										</li>
 										<li class="tsd-parameter">
-											<h5>conditions<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Set</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">Readonly</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/controller.conditioninstance.html" class="tsd-signature-type">ConditionInstance</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span></h5>
+											<h5>conditions<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Set</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">Readonly</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">ConditionInstance</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span></h5>
 										</li>
 										<li class="tsd-parameter">
 											<h5>on<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">"new"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">"change"</span></h5>
@@ -504,32 +222,14 @@
 					<li class="current tsd-kind-module">
 						<a href="controller.html" class="tsd-kind-icon">controller</a>
 						<ul>
-							<li class=" tsd-kind-module tsd-parent-kind-module">
-								<a href="controller._json_pointer_.html" class="tsd-kind-icon">&quot;json-<wbr>pointer&quot;</a>
-							</li>
 							<li class=" tsd-kind-class tsd-parent-kind-module">
 								<a href="../classes/controller.rulesengine.html" class="tsd-kind-icon">Rules<wbr>Engine</a>
 							</li>
-							<li class=" tsd-kind-interface tsd-parent-kind-module tsd-is-not-exported">
-								<a href="../interfaces/controller.actioninstance.html" class="tsd-kind-icon">Action<wbr>Instance</a>
-							</li>
-							<li class=" tsd-kind-interface tsd-parent-kind-module tsd-is-not-exported">
-								<a href="../interfaces/controller.conditioninstance.html" class="tsd-kind-icon">Condition<wbr>Instance</a>
-							</li>
-							<li class=" tsd-kind-interface tsd-parent-kind-module tsd-is-not-exported">
+							<li class=" tsd-kind-interface tsd-parent-kind-module">
 								<a href="../interfaces/controller.engineoptions.html" class="tsd-kind-icon">Engine<wbr>Options</a>
 							</li>
-							<li class=" tsd-kind-interface tsd-parent-kind-module tsd-is-not-exported">
-								<a href="../interfaces/controller.options.html" class="tsd-kind-icon">Options</a>
-							</li>
-							<li class=" tsd-kind-interface tsd-parent-kind-module tsd-is-not-exported">
+							<li class=" tsd-kind-interface tsd-parent-kind-module">
 								<a href="../interfaces/controller.ruleinputs.html" class="tsd-kind-icon">Rule<wbr>Inputs</a>
-							</li>
-							<li class=" tsd-kind-variable tsd-parent-kind-module tsd-is-not-exported">
-								<a href="controller.html#rulestree" class="tsd-kind-icon">rules<wbr>Tree</a>
-							</li>
-							<li class=" tsd-kind-variable tsd-parent-kind-module tsd-is-not-exported">
-								<a href="controller.html#servicerulestree" class="tsd-kind-icon">service<wbr>Rules<wbr>Tree</a>
 							</li>
 							<li class=" tsd-kind-function tsd-parent-kind-module">
 								<a href="controller.html#compile" class="tsd-kind-icon">compile</a>
@@ -551,11 +251,8 @@
 		<h2>Legend</h2>
 		<div class="tsd-legend-group">
 			<ul class="tsd-legend">
-				<li class="tsd-kind-object-literal"><span class="tsd-kind-icon">Object literal</span></li>
-				<li class="tsd-kind-variable"><span class="tsd-kind-icon">Variable</span></li>
 				<li class="tsd-kind-function"><span class="tsd-kind-icon">Function</span></li>
 				<li class="tsd-kind-function tsd-has-type-parameter"><span class="tsd-kind-icon">Function with type parameter</span></li>
-				<li class="tsd-kind-type-alias"><span class="tsd-kind-icon">Type alias</span></li>
 				<li class="tsd-kind-type-alias tsd-has-type-parameter"><span class="tsd-kind-icon">Type alias with type parameter</span></li>
 			</ul>
 			<ul class="tsd-legend">
