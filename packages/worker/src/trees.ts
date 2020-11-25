@@ -1,3 +1,10 @@
+/**
+ * OADA Tree stuff?
+ *
+ * @internal
+ * @packageDocumentation
+ */
+
 import pointer from 'json-pointer';
 
 import type { Options } from './';

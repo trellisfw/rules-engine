@@ -4,6 +4,7 @@
   "readme": "./README.md",
   "external-modulemap": ".*packages/([^/]+)/.*",
   "excludePrivate": true,
+  "excludeNotExported": true,
   "stripInternal": true,
   "out": "docs"
 }

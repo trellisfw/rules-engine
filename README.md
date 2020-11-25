@@ -16,3 +16,8 @@ see the [`rules-controller` library](packages/controller/).
 
 For exposing the capabilities of a Trellis microserivce to the Rules Engine,
 see the [`rules-worker` library](packages/worker/).
+
+# Contributing
+
+This monorepo uses lerna with yarn workspaces.
+After cloning, run `lerna bootstrap` to initialize the monorepo.

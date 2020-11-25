@@ -1,3 +1,10 @@
+/**
+ * Stuff for automagically generating JSON Schema from TS Class
+ *
+ * @internal
+ * @packageDocumentation
+ */
+
 import Bluebird from 'bluebird';
 import { join } from 'path';
 import debug from 'debug';

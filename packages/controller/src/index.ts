@@ -14,6 +14,9 @@ import type Configured from '@oada/types/trellis/rules/configured';
 
 import type { OADAClient } from '@oada/client';
 
+/**
+ * @internal
+ */
 declare module 'json-pointer' {
   function set(
     object: object,
@@ -108,7 +111,7 @@ interface ConditionInstance extends Condition, Options {}
 /**
  * A rule to be "compiled"
  */
-interface RuleInputs {
+export interface RuleInputs {
   type: Configured['type'];
   path: Configured['path'];
   on?: Configured['on'];
@@ -118,7 +121,7 @@ interface RuleInputs {
   actions: readonly Readonly<ActionInstance>[];
 }
 
-interface EngineOptions {
+export interface EngineOptions {
   conn: OADAClient;
 }
 /**

@@ -17,6 +17,8 @@ const emptyResp: SocketResponse = {
 
 /**
  * Creates a stubbed OADAClient for use in tests
+ *
+ * @internal
  */
 export function createStub() {
   const conn = sinon.createStubInstance(OADAClient);
