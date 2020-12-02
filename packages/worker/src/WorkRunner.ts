@@ -1,8 +1,10 @@
 import debug from 'debug';
 import Ajv from 'ajv';
 
-import Rule, { assert as assertRule } from '@oada/types/oada/rules/configured';
-import type Work from '@oada/types/oada/rules/compiled';
+import Rule, {
+  assert as assertRule,
+} from '@oada/types/trellis/rules/configured';
+import type Work from '@oada/types/trellis/rules/compiled';
 
 import { ListWatch } from '@oada/list-lib';
 

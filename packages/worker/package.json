@@ -46,7 +46,7 @@
   ],
   "dependencies": {
     "@oada/list-lib": "^2.0.2",
-    "@oada/types": "^1.2.0-beta.14",
+    "@oada/types": "1.2.0-beta.17",
     "@rjsf/core": "^2.4.0",
     "ajv": "^6.12.4",
     "bluebird": "^3.7.2",

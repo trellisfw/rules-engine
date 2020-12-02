@@ -891,6 +891,15 @@
     jsonschema8 "^1.1.0"
     object-assign-deep "^0.4.0"
 
+"@oada/types@1.2.0-beta.17":
+  version "1.2.0-beta.17"
+  resolved "https://registry.yarnpkg.com/@oada/types/-/types-1.2.0-beta.17.tgz#2ea8133190c357d97d9b75bbc8f346946f831e64"
+  integrity sha512-ZrOLssRhqE4PNFEEZIRHxMX0cE3d6OjxDW/CNAynDdd3fTc9GAsbbdK58GlwNrtbUHXB76hRH5SYlq98Iuc4Vg==
+  dependencies:
+    ajv "^6.12.2"
+    json-schema-merge-allof "^0.7.0"
+    lodash.omit "^4.5.0"
+
 "@oada/types@^1.0.6":
   version "1.0.10"
   resolved "https://registry.yarnpkg.com/@oada/types/-/types-1.0.10.tgz#f12f2a01e52c1d7a2d9a7662ad9c426dff6bb91f"
@@ -904,18 +913,6 @@
   version "1.1.1-beta.77"
   resolved "https://registry.yarnpkg.com/@oada/types/-/types-1.1.1-beta.77.tgz#51178c3f99a381ab6c802ce6dc96c198571de458"
   integrity sha512-UI/XeoZTCCyLTBb/t/pNmohj+VgSow7JgRSA6Y9hBX5EO8ANy34xcJywWlytChUDiTnbK3WXUSr+yfGLyYl5gg==
-  dependencies:
-    "@types/json-schema-merge-allof" "^0.6.0"
-    "@types/lodash.omit" "^4.5.6"
-    ajv "^6.12.2"
-    json-schema-merge-allof "^0.7.0"
-    lodash.omit "^4.5.0"
-    typescript "^4.0.3"
-
-"@oada/types@^1.2.0-beta.14":
-  version "1.2.0-beta.14"
-  resolved "https://registry.yarnpkg.com/@oada/types/-/types-1.2.0-beta.14.tgz#36517213ba5fb92c8d6af0844c0651618c62800e"
-  integrity sha512-Yql220Vlnu8iaq+MDdOA0blQWVM4b/Ocm1LcfhnAMfQO/ailAsC9t0ELtU80hzoWRmPq4zbdaWGMBNA64tPjIg==
   dependencies:
     "@types/json-schema-merge-allof" "^0.6.0"
     "@types/lodash.omit" "^4.5.6"
@@ -1109,7 +1106,7 @@
   version "1.0.0"
   dependencies:
     "@oada/client" "^1.0.4"
-    "@oada/types" "^1.2.0-beta.14"
+    "@oada/types" "1.2.0-beta.17"
     clone-deep "^4.0.1"
     debug "^4.1.1"
     json-pointer "^0.6.1"
@@ -1121,7 +1118,7 @@
   version "1.1.0"
   dependencies:
     "@oada/list-lib" "^2.0.2"
-    "@oada/types" "^1.2.0-beta.14"
+    "@oada/types" "1.2.0-beta.17"
     "@rjsf/core" "^2.4.0"
     ajv "^6.12.4"
     bluebird "^3.7.2"
