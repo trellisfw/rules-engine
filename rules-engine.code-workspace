@@ -1,0 +1,90 @@
+{
+  "folders": [
+    {
+      "name": "✨ @trellisfw/rules-engine",
+      "path": "."
+    },
+    {
+      "name": "📦 @trellisfw/rules-controller",
+      "path": "packages/controller"
+    },
+    {
+      "name": "📦 @trellisfw/rules-worker",
+      "path": "packages/worker"
+    }
+  ],
+  "settings": {
+    "eslint.nodePath": ".yarn/sdks",
+    "prettier.prettierPath": ".yarn/sdks/prettier/index.js",
+    "typescript.tsdk": ".yarn/sdks/typescript/lib",
+    "typescript.enablePromptUseWorkspaceTsdk": true,
+    "search.exclude": {
+      ".dccache": true,
+      ".actrc": true,
+      ".history": true,
+      ".DS_Store": true,
+      ".grunt": true,
+      ".lock-wscript": true,
+      ".node_repl_history": true,
+      ".npm": true,
+      ".nyc_output": true,
+      ".pnp.*": true,
+      ".vim": true,
+      ".yarn": true,
+      "*.log": true,
+      "*.pid": true,
+      "*.seed": true,
+      "*.tsbuildinfo": true,
+      "coverage": true,
+      "dist": true,
+      "lib": true,
+      "lib-cov": true,
+      "logs": true,
+      "node_modules": true,
+      "pids": true,
+      "tags.*": true,
+      "act/": true
+    },
+    "files.exclude": {
+      ".dccache": true,
+      ".actrc": true,
+      ".history": true,
+      ".DS_Store": true,
+      ".grunt": true,
+      ".lock-wscript": true,
+      ".node_repl_history": true,
+      ".npm": true,
+      ".nyc_output": true,
+      ".pnp.*": true,
+      ".vim": true,
+      ".yarn": true,
+      "*.log": true,
+      "*.pid": true,
+      "*.seed": true,
+      "*.tsbuildinfo": true,
+      "coverage": true,
+      "lib": true,
+      "dist": true,
+      "lib-cov": true,
+      "logs": true,
+      "node_modules": true,
+      "pids": true,
+      "tags.*": true,
+      "act/": true
+    },
+    "eslint.packageManager": "yarn",
+    "eslint.useESLintClass": true,
+    "licenser.author": "Qlever LLC",
+    "licenser.license": "MIT",
+    "cSpell.words": [
+      "featureful",
+      "ksuid",
+      "monorepo",
+      "Promisified",
+      "rjsf",
+      "sonarjs",
+      "trellisfw",
+      "uischema"
+    ]
+  }
+}

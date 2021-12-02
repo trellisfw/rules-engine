@@ -1,3 +1,20 @@
+/**
+ * @license
+ * Copyright 2021 Qlever LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 import debug from 'debug';
 import Ajv from 'ajv';
 
@@ -8,20 +25,15 @@ import type Work from '@oada/types/trellis/rules/compiled';
 
 import { ListWatch } from '@oada/list-lib';
 
-import { Options, ActionImplementor } from './';
+import { ActionImplementor, Options } from './';
 
 const info = debug('rules-worker:info');
 
 const ajv = new Ajv();
 
-function assertNever(val: never) {
-  throw new Error(`Unsupported value ${val}`);
+function assertNever(value: never) {
+  throw new Error(`Unsupported value ${value}`);
 }
-
-/**
- * Do magic with type inference stuff.
- */
-type Literal<T> = T extends string & infer R ? R : never;
 
 /**
  * Class for running a particular piece of compiled work
@@ -30,12 +42,12 @@ type Literal<T> = T extends string & infer R ? R : never;
  * @todo I don't love this class...
  * @internal
  */
-export class WorkRunner<S extends string, P extends {}> {
-  private conn;
+export class WorkRunner<S extends string, P extends Record<string, unknown>> {
+  private readonly conn;
   /**
    * Compiled JSON Schema filter for this work
    */
-  private validator;
+  private readonly validator;
   /**
    * ListWatch for path of potential work
    */
@@ -43,7 +55,7 @@ export class WorkRunner<S extends string, P extends {}> {
   /**
    * Watch on corresponding rule so we can react to changes
    */
-  private ruleWatch;
+  private readonly ruleWatch;
   private _enabled;
   public readonly name;
   /**
@@ -53,7 +65,7 @@ export class WorkRunner<S extends string, P extends {}> {
   /**
    * Callback which implements the action involved in this work
    */
-  private callback;
+  private readonly callback;
 
   constructor(
     conn: Options<S, [], []>['conn'],
@@ -135,6 +147,7 @@ export class WorkRunner<S extends string, P extends {}> {
           default:
             assertNever(on);
         }
+
         // Register watch for this work
         this.workWatch = new ListWatch({
           // Make sure each work has unique name?
@@ -143,14 +156,12 @@ export class WorkRunner<S extends string, P extends {}> {
           conn,
           // Only work on each item once
           resume: true,
-          assertItem: (item) => {
+          assertItem: (item: unknown) => {
             if (!validator(item)) {
-              // TODO: Maybe throw something else
               throw validator.errors;
             }
           },
-          [listEvent!]: (item: unknown) =>
-            callback(item, options as Literal<P>),
+          [listEvent!]: async (item: unknown) => callback(item, options as any),
         });
       } else {
         await this.workWatch!.stop();

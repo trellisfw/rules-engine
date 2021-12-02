@@ -30,7 +30,7 @@ new RulesWorker({
 Actions can have inputs beyond just the item the rule is operating on.
 The library facilitates advertising these to the Rules Engine.
 
-Below are two example of the two ways to specify action inputs.
+Below are two examples of the two ways to specify action inputs.
 Both examples are equivalent in regards to the rules engine.
 
 ### Automagical TypeScript way
@@ -45,7 +45,7 @@ import { RulesWorker, Action } from '@oada/rules-worker';
 class Options {
   /**
    * This will not be exposed to the rules engine.
-   * @description This will become the description of a in the rules engine
+   * @description This will become the description of `a` in the rules engine
    * @default 1
    */
   a?: number; // an optional input
@@ -78,7 +78,7 @@ new RulesWorker({
 });
 ```
 
-### Supplying You Own Input Schema
+### Supplying Your Own Input Schema
 
 This approach will work with both TypeScript and JavaScript.
 The downside is that even in TypeScript you do not get a type for `options`.
@@ -134,7 +134,7 @@ the item the rule is operating on.
 The library facilitates advertising these to the Rules Engine.
 
 Below is an example of the automagical way.
-You can also supply you own schema for the inputs
+You can also supply your own schema for the inputs
 with the key `params` as in the action example above.
 
 ### Automagical TypeScript way

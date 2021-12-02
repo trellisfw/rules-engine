@@ -1,4 +1,21 @@
 /**
+ * @license
+ * Copyright 2021 Qlever LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/**
  * Stuff for automagically generating JSON Schema from TS Class
  *
  * @internal
@@ -6,7 +23,7 @@
  */
 
 import Bluebird from 'bluebird';
-import { join } from 'path';
+import { join } from 'node:path';
 import debug from 'debug';
 import findRoot from 'find-root';
 import _glob, { IOptions as GlobOptions } from 'glob';
@@ -39,11 +56,8 @@ export async function schemaGenerator(caller: string) {
   trace(`Caller root: ${root}`);
 
   // Load TS compiler options for caller
-  const {
-    compilerOptions,
-  }: { compilerOptions: TJS.CompilerOptions } = await import(
-    join(root, 'tsconfig')
-  );
+  const { compilerOptions }: { compilerOptions: TJS.CompilerOptions } =
+    await import(join(root, 'tsconfig'));
 
   // Find TS files for program
   const files = await glob(join(compilerOptions.rootDir ?? '', '**', '*.ts'), {
@@ -51,9 +65,7 @@ export async function schemaGenerator(caller: string) {
   });
   const program = TJS.getProgramFromFiles(files, compilerOptions, root);
 
-  const generator = TJS.buildGenerator(program, compilerSettings);
-
-  return generator;
+  return TJS.buildGenerator(program, compilerSettings);
 }
 
 type AllowSymbols<T> = {
@@ -66,6 +78,7 @@ export type InputSchema = AllowSymbols<Schema>;
 export function SchemaInput(name: string) {
   return Symbol(name);
 }
+
 /**
  * Description of a path into a JSON Schema where an input should be applied.
  */
@@ -80,56 +93,58 @@ export interface InputPath {
  * @see SchemaInput
  * @todo better name?
  */
-function processSchema(
-  inschema: InputSchema
-): {
+function processSchema(inSchema: InputSchema): {
   paths: InputPath[];
-  schema: object | any[];
+  schema: Record<string, unknown> | any[];
 } {
   const paths: InputPath[] = [];
 
-  const keys = Object.getOwnPropertyNames(inschema);
-  const inputKeys = Object.getOwnPropertySymbols(inschema);
+  const keys = Object.getOwnPropertyNames(inSchema);
+  const inputKeys = Object.getOwnPropertySymbols(inSchema);
 
-  const schema: { [key: string]: any } = {};
+  const schema: Record<string, any> = {};
   for (const key of inputKeys) {
     paths.push({ path: [key.toString()], name: key.description!, iskey: true });
   }
-  for (const key of [...keys, ...inputKeys]) {
-    const val = (inschema as any)[key];
-    if (typeof val === 'object') {
-      const { schema: sschema, paths: ppaths } = processSchema(val);
 
-      for (const { path, name, iskey } of ppaths) {
+  for (const key of [...keys, ...inputKeys]) {
+    const value = (inSchema as any)[key];
+    if (typeof value === 'object') {
+      const { schema: sSchema, paths: pPaths } = processSchema(value);
+
+      for (const { path, name, iskey } of pPaths) {
         paths.push({ path: [key.toString(), ...path], name, iskey });
       }
-      schema[key.toString()] = sschema;
+
+      schema[key.toString()] = sSchema;
     } else {
-      if (typeof val === 'symbol') {
+      if (typeof value === 'symbol') {
         paths.push({
           path: [key.toString()],
-          name: val.description!,
+          name: value.description!,
           iskey: false,
         });
       }
-      schema[key.toString()] = val.toString();
+
+      schema[key.toString()] = value.toString();
     }
   }
 
-  if (Array.isArray(inschema)) {
+  if (Array.isArray(inSchema)) {
     return { schema: Array.from(schema as ArrayLike<any>), paths };
-  } else {
-    return { schema, paths };
   }
+
+  return { schema, paths };
 }
+
 /**
  * Render a Schema with input to the format for Rules engine
  *
  * @see SchemaInput
  * @internal
  */
-export function renderSchema(inschema: InputSchema) {
-  const { paths, schema } = processSchema(inschema);
+export function renderSchema(inSchema: InputSchema) {
+  const { paths, schema } = processSchema(inSchema);
 
   const pointers: Record<string, Omit<InputPath, 'path'>> = {};
   for (const { path, name, iskey } of paths) {

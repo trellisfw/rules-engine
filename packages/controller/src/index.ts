@@ -1,3 +1,20 @@
+/**
+ * @license
+ * Copyright 2021 Qlever LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 import type { JSONSchema8 as Schema } from 'jsonschema8';
 import { is } from 'type-is';
 import cloneDeep from 'clone-deep';
@@ -13,18 +30,6 @@ import type Work from '@oada/types/trellis/rules/compiled';
 import type Configured from '@oada/types/trellis/rules/configured';
 
 import type { OADAClient } from '@oada/client';
-
-/**
- * @internal
- */
-declare module 'json-pointer' {
-  function set(
-    object: object,
-    pointer: string | readonly string[],
-    value: any
-  ): void;
-  function get(object: object, pointer: string | readonly string[]): unknown;
-}
 
 /**
  * Rules Tree
@@ -118,7 +123,7 @@ export interface RuleInputs {
   // Represented as list in OADA?
   conditions: Set<Readonly<ConditionInstance>>;
   // Represented as list in OADA?
-  actions: readonly Readonly<ActionInstance>[];
+  actions: ReadonlyArray<Readonly<ActionInstance>>;
 }
 
 export interface EngineOptions {
@@ -146,13 +151,13 @@ export class RulesEngine {
     const work = compile(rule);
 
     // Find all services involved
-    const services = [
-      ...new Set(
+    const services = Array.from(
+      new Set(
         [...rule.actions, ...rule.conditions]
           .map((x) => x.service)
-          .filter((x) => !!x) as string[]
-      ),
-    ];
+          .filter((x) => Boolean(x)) as string[]
+      )
+    );
 
     // Create "configured" rule resource
     const configured: Configured = {
@@ -160,33 +165,31 @@ export class RulesEngine {
       enabled: true,
       type: rule.type,
       path: rule.path,
-      actions: rule.actions.reduce(
-        (out, { _id, _rev, name, service, options }) => ({
-          ...out,
-          [`${service}-${name}`]: {
+      actions: Object.fromEntries(
+        rule.actions.map(({ _id, _rev, name, service, options }) => [
+          `${service}-${name}`,
+          {
             // Link to action resource
             action: {
-              _id,
-              _rev,
+              _id: _id as string,
+              _rev: _rev as number,
             },
             options,
           },
-        }),
-        {}
+        ])
       ),
-      conditions: [...rule.conditions].reduce(
-        (out, { _id, _rev, name, service, options }) => ({
-          ...out,
-          [`${service}-${name}`]: {
+      conditions: Object.fromEntries(
+        Array.from(rule.conditions, ({ _id, _rev, name, service, options }) => [
+          `${service}-${name}`,
+          {
             // Link to condition resource
             condition: {
-              _id,
-              _rev,
+              _id: _id as string,
+              _rev: _rev as number,
             },
             options,
           },
-        }),
-        {}
+        ])
       ),
     };
 
@@ -206,7 +209,7 @@ export class RulesEngine {
         tree: serviceRulesTree,
         data: {
           [uuid.toString()]: {
-            _id: headers['content-location'].substring(1),
+            _id: headers['content-location'].slice(1),
             _rev: 0,
           },
         },
@@ -222,7 +225,7 @@ export class RulesEngine {
           ...piece,
           // Add a link to the rule this work is for
           rule: {
-            _id: headers['content-location'].substring(1),
+            _id: headers['content-location'].slice(1),
             _rev: 0,
           },
         } as any,
@@ -261,7 +264,7 @@ export function compile(
   /**
    * @default false
    */
-  checkTypes: boolean = false
+  checkTypes = false
 ): Work[] {
   if (checkTypes) {
     // Check that types make sense
@@ -271,12 +274,13 @@ export function compile(
           throw new Error();
         }
       }
+
       for (const action of actions) {
         if (!is(type, ([] as string[]).concat(action.type))) {
           throw new Error();
         }
       }
-    } catch (err) {
+    } catch {
       throw new Error('Types of conditions/actions do not align');
     }
   }
@@ -286,36 +290,37 @@ export function compile(
     throw new Error('Rules with multiple actions not yet implemented');
   }
 
-  // "Compile condtions"
+  // "Compile conditions"
   const schema: Schema = { allOf: [] };
   for (const condition of conditions) {
     if (!condition.schema) {
       throw new Error('Non-schema conditions not yet implemented');
     }
 
-    let sschema = condition.schema as object;
+    let sSchema = condition.schema as Record<string, unknown>;
     // Map inputs onto schema
     if (condition.options && condition.pointers) {
-      sschema = cloneDeep(condition.schema) as object;
+      sSchema = cloneDeep(condition.schema) as Record<string, unknown>;
 
-      Object.entries(condition.pointers).forEach(([p, { name, iskey }]) => {
+      for (const [p, { name, iskey }] of Object.entries(condition.pointers)) {
         const pp = pointer.parse(p);
-        const val = condition.options![name]! as string;
+        const value = condition.options[name]! as string;
 
         if (iskey) {
           const oldval = pp.pop()!;
           // Copy child under new key
-          pointer.set(sschema, [...pp, val], pointer.get(sschema, pp));
+          pointer.set(sSchema, [...pp, value], pointer.get(sSchema, pp));
           // Unset old key
-          pointer.set(sschema, [...pp, oldval], undefined);
+          pointer.set(sSchema, [...pp, oldval], undefined);
         } else {
-          pointer.set(sschema, pp, val);
+          pointer.set(sSchema, pp, value);
         }
-      });
+      }
     }
 
-    schema.allOf!.push(sschema as Schema);
+    schema.allOf!.push(sSchema as Schema);
   }
+
   // Handle no conditions?
   if (schema.allOf?.length === 0) {
     delete schema.allOf;
@@ -335,7 +340,7 @@ export function compile(
       rule: {
         // Empty link for now?
         _id: '',
-        _rev: '',
+        _rev: 0,
       },
     },
   ];

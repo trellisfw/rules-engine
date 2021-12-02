@@ -1,7 +1,24 @@
+/**
+ * @license
+ * Copyright 2021 Qlever LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 import { JSONSchema8 as Schema } from 'jsonschema8';
 import test from 'ava';
 
-import { schemaGenerator, SchemaInput, renderSchema } from './schemaGenerator';
+import { SchemaInput, renderSchema, schemaGenerator } from './schemaGenerator';
 
 test('it should compile TS class to JSON Schema', async (t) => {
   /**
@@ -11,7 +28,7 @@ test('it should compile TS class to JSON Schema', async (t) => {
     /**
      * @description foo bar
      */
-    a: string = 'ss';
+    a = 'ss';
     /**
      * @type integer
      * @default 0
@@ -46,12 +63,12 @@ test('it should compile TS class to JSON Schema', async (t) => {
 
 test('it should render schema with inputs', (t) => {
   const inschema: Schema = {
-    // @ts-ignore
+    // @ts-expect-error
     type: SchemaInput('type'),
     properties: {
       a: {
         enum: [
-          // @ts-ignore
+          // @ts-expect-error
           SchemaInput('a'),
         ],
       },
@@ -62,7 +79,6 @@ test('it should render schema with inputs', (t) => {
   const { schema, pointers } = renderSchema(inschema);
 
   t.deepEqual(schema, {
-    // @ts-ignore
     type: 'Symbol(type)',
     properties: {
       'a': { enum: ['Symbol(a)'] },

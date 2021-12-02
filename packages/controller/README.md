@@ -23,7 +23,7 @@ const { data: action } = await conn.get({
   path: '/bookmarks/services/foo/rules/actions/actionBar',
 });
 // Fetch a condition
-const { data: conditon } = await conn.get({
+const { data: condition } = await conn.get({
   path: '/bookmarks/services/foo/rules/conditions/conditionBaz',
 });
 
@@ -31,7 +31,7 @@ const { data: conditon } = await conn.get({
 engine.register({
   type: 'application/vnd.foo.bar+json',
   path: '/bookmarks/foo',
-  conditions: new Set([conditon as Condition]),
+  conditions: new Set([condition as Condition]),
   actions: [action as Action],
 });
 ```

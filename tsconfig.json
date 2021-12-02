@@ -1,14 +1,17 @@
 {
-  "extends": "./tsconfig.build.json",
-
   "compilerOptions": {
-    "baseUrl": ".",
-    "paths": {
-      "@trellisfw/rules-*": ["packages/*/src"]
-    },
-    "jsx": "react",
+    "target": "ES2019",
+    "strict": true,
+    "moduleResolution": "node",
+    "module": "CommonJS",
     "esModuleInterop": true,
-    "skipLibCheck": true,
-    "types": []
+    "lib": ["ES2019"],
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitAny": true,
+    "sourceMap": true,
+    "declaration": true,
+    "declarationMap": true,
+    "stripInternal": true
   }
 }

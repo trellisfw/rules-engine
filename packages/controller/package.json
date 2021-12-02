@@ -1,5 +1,5 @@
 {
-  "version": "1.0.0",
+  "version": "1.0.1",
   "name": "@trellisfw/rules-controller",
   "description": "Library for configuring/controlling Trellis Rules Engine",
   "keywords": [
@@ -18,9 +18,8 @@
     "url": "https://github.com/trellisfw/rules-engine/labels/rules-controller"
   },
   "license": "MIT",
-  "private": false,
   "scripts": {
-    "build": "tsc",
+    "build": "yarn g:tsc -b",
     "pretest": "npm run build",
     "prepare": "npm run build"
   },
@@ -36,13 +35,19 @@
     "quoteProps": "consistent"
   },
   "dependencies": {
-    "@oada/client": "^1.0.4",
-    "@oada/types": "1.2.0-beta.17",
+    "@oada/client": "2.6.5",
+    "@oada/types": "1.7.0",
     "clone-deep": "^4.0.1",
-    "debug": "^4.1.1",
+    "debug": "^4.3.3",
     "json-pointer": "^0.6.1",
-    "jsonschema8": "^1.1.0",
-    "ksuid": "^2.0.0",
+    "jsonschema8": "^1.1.1",
+    "ksuid": "^3.0.0",
     "type-is": "^1.6.18"
+  },
+  "devDependencies": {
+    "@types/clone-deep": "^4.0.1",
+    "@types/json-pointer": "^1.0.31",
+    "@types/node": "^16.11.11",
+    "@types/type-is": "^1.6.3"
   }
 }

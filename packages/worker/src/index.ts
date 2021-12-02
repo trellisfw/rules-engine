@@ -1,10 +1,27 @@
-import { join } from 'path';
+/**
+ * @license
+ * Copyright 2021 Qlever LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import { join } from 'node:path';
 
 import Bluebird from 'bluebird';
 import debug from 'debug';
 import getCallerFile from 'get-caller-file';
 
-//import type { UiSchema } from '@rjsf/core';
+// Import type { UiSchema } from '@rjsf/core';
 
 import type Action from '@oada/types/trellis/rules/action';
 import type Condition from '@oada/types/trellis/rules/condition';
@@ -34,11 +51,11 @@ const error = debug('rules-worker:error');
  */
 export type Options<
   Service extends string,
-  Actions extends readonly ActionImplementor<Service, unknown>[],
-  Conditions extends readonly ConditionImplementor<Service, unknown>[]
+  Actions extends ReadonlyArray<ActionImplementor<Service, unknown>>,
+  Conditions extends ReadonlyArray<ConditionImplementor<Service, unknown>>
 > = {
   /**
-   * The name of the OADA service to assiate with
+   * The name of the OADA service to associate with
    *
    * Should be a constant string
    */
@@ -63,7 +80,7 @@ export type Options<
 /**
  * Representation of an action we implement
  */
-export interface ActionImplementor<Service extends string, Params = never>
+export interface ActionImplementor<Service extends string, Parameters_ = never>
   extends Action {
   /**
    * Only implement our own actions
@@ -78,14 +95,14 @@ export interface ActionImplementor<Service extends string, Params = never>
    * @experimental It is more stable and performant to provide `params`
    * @see params
    */
-  class?: Params extends never ? never : { new (): Params };
+  class?: Parameters_ extends never ? never : new () => Parameters_;
   // Make TS smarter about uischema?
-  uischema?: { [K in keyof Params]?: UiSchema };
+  uischema?: { [K in keyof Parameters_]?: UiSchema };
   /**
    * A callback for code to implement this action
    * @todo Better types parameters?
    */
-  callback: (item: any, options: Params) => Promise<void>;
+  callback: (item: any, options: Parameters_) => Promise<void>;
 }
 
 /**
@@ -102,9 +119,11 @@ export function Action<S extends string, T = unknown>(
 /**
  * Representation of an action we implement
  */
-// @ts-ignore
-export interface ConditionImplementor<Service extends string, Params = never>
-  extends Condition {
+// @ts-expect-error
+export interface ConditionImplementor<
+  Service extends string,
+  Parameters_ = never
+> extends Condition {
   /**
    * Only implement our own conditions
    */
@@ -118,21 +137,21 @@ export interface ConditionImplementor<Service extends string, Params = never>
    * @experimental It is more stable and performant to provide `params`
    * @see params
    */
-  class?: Params extends never ? never : { new (): Params };
+  class?: Parameters_ extends never ? never : new () => Parameters_;
   // Make TS smarter about uischema?
-  uischema?: { [K in keyof Params]?: UiSchema };
+  uischema?: { [K in keyof Parameters_]?: UiSchema };
   /**
    * A JSON Schema to implement this condition.
    *
    * Can also be a function which returns a schema using inputs.
    * @see params
    */
-  schema?: Schema | ((params: Params) => Schema);
+  schema?: Schema | ((parameters: Parameters_) => Schema);
   /**
    * A callback for code to implement this action
    * @todo Better types parameters?
    */
-  callback?: (item: any, options: Params) => Promise<void>;
+  callback?: (item: any, options: Parameters_) => Promise<void>;
 }
 
 /**
@@ -158,15 +177,14 @@ const WORK_PATH = 'compiled';
  */
 export class RulesWorker<
   Service extends string,
-  Actions extends readonly ActionImplementor<Service, any>[],
-  Conditions extends readonly ConditionImplementor<Service, any>[]
+  Actions extends ReadonlyArray<ActionImplementor<Service, any>>,
+  Conditions extends ReadonlyArray<ConditionImplementor<Service, any>>
 > {
   public readonly path;
   public readonly name;
-  public readonly actions: Map<
-    Action['name'],
-    Actions[0]['callback']
-  > = new Map();
+  public readonly actions: Map<Action['name'], Actions[0]['callback']> =
+    new Map();
+
   public readonly conditions: Map<
     Condition['name'],
     Conditions[0]['callback']
@@ -179,7 +197,7 @@ export class RulesWorker<
 
   #conn;
   #workWatch?: ListWatch<Work>;
-  #work: Map<string, WorkRunner<Service, {}>> = new Map();
+  #work: Map<string, WorkRunner<Service, Record<string, unknown>>> = new Map();
 
   /**
    * File which called the constructor
@@ -190,6 +208,7 @@ export class RulesWorker<
     if (!this.#schemaGen) {
       this.#schemaGen = schemaGenerator(this.#caller);
     }
+
     return this.#schemaGen;
   }
 
@@ -210,7 +229,7 @@ export class RulesWorker<
     }
 
     /*
-    // Setup watch for receving work
+    // Setup watch for receiving work
     this.#workWatch = new ListWatch({
       name,
       path: `${this.path}/${WORK_PATH}`,
@@ -245,13 +264,13 @@ export class RulesWorker<
     await fillTree(conn, rulesTree, GLOBAL_ROOT);
 
     // Process actions of this service
-    for (const { name, class: clazz, callback, ...rest } of actions || []) {
+    for (const { name, class: pClass, callback, ...rest } of actions || []) {
       const action: Action = { name, ...rest };
 
-      // TODO: Hacky magic
-      if (clazz) {
+      // FIXME: Hacky magic
+      if (pClass) {
         action.params = (await this.schemaGen)?.getSchemaForSymbol(
-          clazz.name
+          pClass.name
         ) as any;
       }
 
@@ -268,7 +287,7 @@ export class RulesWorker<
         data: {
           [`${this.name}-${name}`]: {
             // TODO: Should this link be versioned?
-            _id: headers['content-location'].substring(1),
+            _id: headers['content-location'].slice(1),
           },
         },
       });
@@ -276,24 +295,25 @@ export class RulesWorker<
       // Keep the callback for later
       this.actions.set(name, callback);
     }
+
     // Process conditions of this service
     for (const {
       name,
-      schema: inschema,
-      class: clazz,
+      schema: inSchema,
+      class: pClass,
       callback,
       ...rest
     } of conditions || []) {
       const condition: Condition = { name, ...rest };
 
-      if (typeof inschema === 'function') {
+      if (typeof inSchema === 'function') {
         const inputs = new Proxy(
           {},
-          { get: (_, prop) => Symbol(prop.toString()) }
+          { get: (_, property) => Symbol(property.toString()) }
         );
-        condition.schema = inschema(inputs) as Condition['schema'];
+        condition.schema = inSchema(inputs) as Condition['schema'];
       } else {
-        condition.schema = inschema as Condition['schema'];
+        condition.schema = inSchema as Condition['schema'];
       }
 
       if (condition.schema) {
@@ -303,9 +323,9 @@ export class RulesWorker<
       }
 
       // TODO: Hacky magic
-      if (clazz) {
+      if (pClass) {
         condition.params = (await this.schemaGen)?.getSchemaForSymbol(
-          clazz.name
+          pClass.name
         ) as any;
       }
 
@@ -322,7 +342,7 @@ export class RulesWorker<
         data: {
           [`${this.name}-${name}`]: {
             // TODO: Should this link be versioned?
-            _id: headers['content-location'].substring(1),
+            _id: headers['content-location'].slice(1),
           },
         },
       });
@@ -333,7 +353,7 @@ export class RulesWorker<
       }
     }
 
-    // Setup watch for receving work
+    // Setup watch for receiving work
     this.#workWatch = new ListWatch({
       name: this.name,
       path: join(this.path, WORK_PATH),
@@ -354,7 +374,7 @@ export class RulesWorker<
     const conn = this.#conn;
 
     if (this.#work.has(id)) {
-      // TODO: Handle modifying exisitng work
+      // TODO: Handle modifying existing work
     }
 
     info(`Adding new work ${id}`);
@@ -375,9 +395,9 @@ export class RulesWorker<
 
       await workRunner.init();
       this.#work.set(id, workRunner);
-    } catch (err: unknown) {
-      error(`Error adding work ${id}: %O`, err);
-      throw err;
+    } catch (error_: unknown) {
+      error(`Error adding work ${id}: %O`, error_);
+      throw error_;
     }
   }
 
@@ -386,6 +406,6 @@ export class RulesWorker<
    */
   public async stop() {
     await (this.#workWatch && this.#workWatch.stop());
-    await Bluebird.map(this.#work, ([_, work]) => work.stop());
+    await Bluebird.map(this.#work, async ([_, work]) => work.stop());
   }
 }

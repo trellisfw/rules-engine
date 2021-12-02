@@ -1,5 +1,5 @@
 {
-  "version": "1.1.0",
+  "version": "1.1.1",
   "name": "@trellisfw/rules-worker",
   "description": "Worker library for exposing services to Trellis Rules Engine",
   "keywords": [
@@ -19,9 +19,8 @@
     "url": "https://github.com/trellisfw/rules-engine/labels/rules-worker"
   },
   "license": "MIT",
-  "private": false,
   "scripts": {
-    "build": "tsc -p tsconfig.build.json",
+    "build": "yarn g:tsc -b",
     "pretest": "npm run build",
     "test": "ava",
     "prepare": "npm run build"
@@ -45,17 +44,28 @@
     "tsconfig.json"
   ],
   "dependencies": {
-    "@oada/list-lib": "^2.0.2",
-    "@oada/types": "1.2.0-beta.17",
-    "@rjsf/core": "^2.4.0",
-    "ajv": "^6.12.4",
+    "@oada/list-lib": "^2.1.11",
+    "@oada/types": "1.7.0",
+    "@rjsf/core": "^3.2.1",
+    "ajv": "^8.8.2",
     "bluebird": "^3.7.2",
-    "debug": "^4.1.1",
+    "debug": "^4.3.3",
     "find-root": "^1.1.0",
     "get-caller-file": "^2.0.5",
-    "glob": "^7.1.6",
+    "glob": "^7.2.0",
     "json-pointer": "^0.6.1",
-    "jsonschema8": "^1.1.0",
-    "typescript-json-schema": "^0.43.0"
+    "jsonschema8": "^1.1.1",
+    "typescript-json-schema": "^0.52.0"
+  },
+  "devDependencies": {
+    "@oada/client": "^2.6.5",
+    "@types/bluebird": "^3.5.36",
+    "@types/debug": "^4.1.7",
+    "@types/find-root": "^1.1.2",
+    "@types/glob": "^7.2.0",
+    "@types/json-pointer": "^1.0.31",
+    "@types/node": "^16.11.11",
+    "@types/sinon": "^10.0.6",
+    "ava": "^3.15.0"
   }
 }
